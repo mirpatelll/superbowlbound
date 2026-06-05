@@ -46,7 +46,8 @@
   .scr.on{display:block}
   @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-  .topbar{display:flex;justify-content:flex-end;margin-bottom:8px}
+  .topbar{display:flex;justify-content:flex-end;gap:8px;margin-bottom:8px}
+  #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60;display:none}
   .themeToggle{font-family:'Oswald';font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:12px;padding:9px 13px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--white);cursor:pointer}
   .themeToggle:hover{border-color:var(--gold)}
 
@@ -81,7 +82,7 @@
   .btn.draft:hover{filter:brightness(1.07)}
   .btn:disabled{opacity:.32;cursor:not-allowed;filter:grayscale(.4)}
 
-  .track{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-bottom:18px}
+  .track{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-bottom:18px}
   .slot{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 4px;text-align:center;min-height:60px;display:flex;flex-direction:column;justify-content:center;transition:.2s}
   .slot.cur{border-color:var(--gold);box-shadow:0 0 0 2px rgba(245,197,24,.18) inset}
   .slot.done{border-color:var(--green-d)}
@@ -146,6 +147,17 @@
 
   .foot{text-align:center;color:var(--mute);font-size:11px;margin-top:26px;line-height:1.6}
 
+  .hof{margin:0 auto 22px;max-width:560px}
+  .hof .pad{padding:18px 22px}
+  .hof h3{font-family:'Oswald';text-transform:uppercase;letter-spacing:.12em;font-size:13px;color:var(--gold);margin-bottom:14px}
+  .hofgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:10px}
+  .hofstat{background:var(--inset);border:1px solid var(--line);border-radius:12px;padding:12px 8px;text-align:center}
+  .hofstat .v{font-family:'Anton';font-size:24px;color:var(--gold);line-height:1}
+  .hofstat .k{font-family:'Oswald';text-transform:uppercase;letter-spacing:.06em;font-size:10px;color:var(--mute);margin-top:6px;line-height:1.2}
+  .sharerow{display:flex;gap:10px;margin-top:16px}
+  .btn.share{flex:1;padding:14px;font-size:15px;background:var(--panel);color:var(--white);border:1px solid var(--line)}
+  .btn.share:hover{border-color:var(--gold)}
+
   /* On touch devices, :hover sticks after a tap — disable hover-only effects there */
   @media (hover: none){
     .themeToggle:hover{border-color:var(--line)}
@@ -163,7 +175,7 @@
     .pad{padding:18px 16px}
     .rules .pad{padding:18px 16px}
     /* Draft tracker: 4 across in two rows reads far better than 8 tiny columns */
-    .track{grid-template-columns:repeat(4,1fr);gap:6px}
+    .track{grid-template-columns:repeat(5,1fr);gap:5px}
     .slot{min-height:auto;padding:9px 4px}
     .slot .who{display:block;font-size:10px}
     .modes{flex-direction:column;align-items:stretch;gap:8px}
@@ -187,23 +199,34 @@
 </style>
 </head>
 <body>
+<canvas id="confetti"></canvas>
 <div class="wrap">
-  <div class="topbar"><button class="themeToggle" id="themeToggle" onclick="toggleTheme()">Light Mode</button></div>
+  <div class="topbar">
+    <button class="themeToggle" id="muteToggle" onclick="toggleMute()" aria-label="Toggle sound">&#128266;</button>
+    <button class="themeToggle" id="themeToggle" onclick="toggleTheme()">Light Mode</button>
+  </div>
 
   <section class="scr on" id="start">
     <div class="brand">
       <div class="kick">All Time Roster Builder</div>
       <h1>Superbowl<br><span>Bound</span></h1>
     </div>
-    <p class="tag">Pick a legend each round, build all eight slots, and see how far your dream roster runs.</p>
+    <p class="tag">Pick a legend each round, build all ten slots, and see how far your dream roster runs.</p>
+
+    <div class="hof card" id="hof" style="display:none">
+      <div class="pad">
+        <h3>Your Hall of Fame</h3>
+        <div class="hofgrid" id="hofgrid"></div>
+      </div>
+    </div>
 
     <div class="rules card">
       <div class="pad">
         <h3>How it works</h3>
         <ul>
-          <li>Build 8 slots: QB, RB, three WRs, TE, a whole offensive line, and a whole defense.</li>
+          <li>Build 10 slots: QB, RB, three WRs, TE, an offensive line, a defense, a kicker/returner, and a head coach.</li>
           <li>Every round you get four cards. Each is a franchise, an era, and that team's best legend from it. Pick one.</li>
-          <li>The line and defense slots draft famous units like the Hogs, the Steel Curtain, or the Legion of Boom.</li>
+          <li>The line, defense, and special-teams slots draft famous units like the Hogs, the Steel Curtain, or the Legion of Boom.</li>
           <li>Don't love your options? Hit Respin All to reroll all four cards into brand new franchises, eras, and legends. You get four respins per game.</li>
           <li>Your roster gets one blended rating run through a win curve. Only a near perfect build goes 17 and 0.</li>
         </ul>
@@ -230,7 +253,7 @@
     <div class="card">
       <div class="pad">
         <div class="round">
-          <span class="r" id="roundLabel">Round 1 of 8</span>
+          <span class="r" id="roundLabel">Round 1 of 10</span>
           <span class="need">On the clock: <em id="needPos">QB</em></span>
         </div>
         <div class="respinrow">
@@ -261,7 +284,12 @@
       </div>
       <div class="breakdown" id="breakdown"></div>
     </div>
-    <div style="margin-top:16px"><button class="btn big" onclick="reset()">Build Another Roster</button></div>
+    <div class="sharerow">
+      <button class="btn share" onclick="shareResult()"><span class="ic">&#128228;</span> Share</button>
+      <button class="btn share" onclick="saveImage()"><span class="ic">&#128247;</span> Save image</button>
+    </div>
+    <div class="note" id="shareNote"></div>
+    <div style="margin-top:14px"><button class="btn big" onclick="reset()">Build Another Roster</button></div>
     <div class="foot">An independent fan project. Not affiliated with the NFL.</div>
   </section>
 
@@ -275,11 +303,6 @@ const DATA={
     {t:"Browns",e:"1950s",n:"Otto Graham",r:96},{t:"Colts",e:"1950s",n:"Johnny Unitas",r:90},
     {t:"Lions",e:"1950s",n:"Bobby Layne",r:87},{t:"Rams",e:"1950s",n:"Norm Van Brocklin",r:86},
     {t:"Giants",e:"1950s",n:"Charlie Conerly",r:81},{t:"49ers",e:"1950s",n:"Y.A. Tittle",r:84},
-    {t:"Colts",e:"1960s",n:"Johnny Unitas",r:96},{t:"Packers",e:"1960s",n:"Bart Starr",r:91},
-    {t:"Jets",e:"1960s",n:"Joe Namath",r:89},{t:"Chiefs",e:"1960s",n:"Len Dawson",r:88},
-    {t:"Vikings",e:"1960s",n:"Fran Tarkenton",r:86},{t:"Cowboys",e:"1960s",n:"Don Meredith",r:83},
-    {t:"Raiders",e:"1960s",n:"Daryle Lamonica",r:84},{t:"Redskins",e:"1960s",n:"Sonny Jurgensen",r:89},
-    {t:"Giants",e:"1960s",n:"Y.A. Tittle",r:88},{t:"Chargers",e:"1960s",n:"John Hadl",r:83},
     {t:"Cowboys",e:"1970s",n:"Roger Staubach",r:92},{t:"Steelers",e:"1970s",n:"Terry Bradshaw",r:90},
     {t:"Vikings",e:"1970s",n:"Fran Tarkenton",r:90},{t:"Raiders",e:"1970s",n:"Ken Stabler",r:89},
     {t:"Dolphins",e:"1970s",n:"Bob Griese",r:88},{t:"Bengals",e:"1970s",n:"Ken Anderson",r:88},
@@ -332,9 +355,6 @@ const DATA={
     {t:"Browns",e:"1950s",n:"Jim Brown",r:96},{t:"49ers",e:"1950s",n:"Joe Perry",r:87},
     {t:"Giants",e:"1950s",n:"Frank Gifford",r:85},{t:"49ers",e:"1950s",n:"Hugh McElhenny",r:85},
     {t:"Lions",e:"1950s",n:"Doak Walker",r:84},{t:"Eagles",e:"1950s",n:"Steve Van Buren",r:87},
-    {t:"Browns",e:"1960s",n:"Jim Brown",r:99},{t:"Bears",e:"1960s",n:"Gale Sayers",r:93},
-    {t:"Packers",e:"1960s",n:"Jim Taylor",r:88},{t:"Browns",e:"1960s",n:"Leroy Kelly",r:86},
-    {t:"Packers",e:"1960s",n:"Paul Hornung",r:85},{t:"Colts",e:"1960s",n:"Lenny Moore",r:88},
     {t:"Bills",e:"1970s",n:"O.J. Simpson",r:94},{t:"Oilers",e:"1970s",n:"Earl Campbell",r:93},
     {t:"Steelers",e:"1970s",n:"Franco Harris",r:88},{t:"Dolphins",e:"1970s",n:"Larry Csonka",r:88},
     {t:"Cowboys",e:"1970s",n:"Tony Dorsett",r:88},{t:"Vikings",e:"1970s",n:"Chuck Foreman",r:85},
@@ -385,10 +405,6 @@ const DATA={
     {t:"Rams",e:"1950s",n:"Elroy Hirsch",r:86},{t:"Colts",e:"1950s",n:"Raymond Berry",r:85},
     {t:"Rams",e:"1950s",n:"Tom Fears",r:83},{t:"Eagles",e:"1950s",n:"Pete Pihos",r:84},
     {t:"Browns",e:"1950s",n:"Dante Lavelli",r:84},{t:"Browns",e:"1950s",n:"Mac Speedie",r:82},
-    {t:"Chargers",e:"1960s",n:"Lance Alworth",r:93},{t:"Cowboys",e:"1960s",n:"Bob Hayes",r:90},
-    {t:"Browns",e:"1960s",n:"Paul Warfield",r:89},{t:"Colts",e:"1960s",n:"Raymond Berry",r:88},
-    {t:"Redskins",e:"1960s",n:"Charley Taylor",r:87},{t:"Chiefs",e:"1960s",n:"Otis Taylor",r:85},
-    {t:"Oilers",e:"1960s",n:"Charlie Hennigan",r:83},
     {t:"Dolphins",e:"1970s",n:"Paul Warfield",r:88},{t:"Steelers",e:"1970s",n:"Lynn Swann",r:87},
     {t:"Steelers",e:"1970s",n:"John Stallworth",r:87},{t:"Raiders",e:"1970s",n:"Cliff Branch",r:86},
     {t:"Chargers",e:"1970s",n:"Charlie Joiner",r:85},{t:"Bengals",e:"1970s",n:"Isaac Curtis",r:82},
@@ -441,8 +457,6 @@ const DATA={
   ],
   TE:[
     {t:"Eagles",e:"1950s",n:"Pete Pihos",r:82},{t:"Giants",e:"1950s",n:"Bob Schnelker",r:76},
-    {t:"Bears",e:"1960s",n:"Mike Ditka",r:91},{t:"Colts",e:"1960s",n:"John Mackey",r:90},
-    {t:"Packers",e:"1960s",n:"Ron Kramer",r:81},{t:"Chiefs",e:"1960s",n:"Fred Arbanas",r:81},
     {t:"Chargers",e:"1970s",n:"Kellen Winslow",r:90},{t:"Raiders",e:"1970s",n:"Dave Casper",r:89},
     {t:"Colts",e:"1970s",n:"John Mackey",r:88},{t:"Bengals",e:"1970s",n:"Bob Trumpy",r:82},
     {t:"Chargers",e:"1980s",n:"Kellen Winslow",r:93},{t:"Browns",e:"1980s",n:"Ozzie Newsome",r:90},
@@ -477,10 +491,6 @@ const DATA={
     {t:"Browns",e:"1950s",n:"The Cleveland Wall",r:90,m:"Gatski, McCormack, Groza, Gibron, Hickerson"},
     {t:"Giants",e:"1950s",n:"Giants Front",r:83,m:"Roosevelt Brown, Jack Stroud, Ray Wietecha"},
     {t:"Lions",e:"1950s",n:"Motor City Wall",r:83,m:"Lou Creekmur, Charlie Ane, Harley Sewell"},
-    {t:"Packers",e:"1960s",n:"Lombardi's Line",r:94,m:"Forrest Gregg, Jerry Kramer, Jim Ringo, Fuzzy Thurston"},
-    {t:"Colts",e:"1960s",n:"Big Jim's Line",r:89,m:"Jim Parker, Bob Vogel, Dan Sullivan"},
-    {t:"Browns",e:"1960s",n:"Hickerson's Hogs",r:88,m:"Gene Hickerson, Dick Schafrath, Monte Clark"},
-    {t:"Chiefs",e:"1960s",n:"Stram's Wall",r:86,m:"Ed Budde, Jim Tyrer, Dave Hill"},
     {t:"Raiders",e:"1970s",n:"Silver and Black Wall",r:93,m:"Gene Upshaw, Art Shell, Jim Otto, Dave Dalby"},
     {t:"Dolphins",e:"1970s",n:"The Mover Line",r:91,m:"Larry Little, Jim Langer, Bob Kuechenberg"},
     {t:"Bills",e:"1970s",n:"The Electric Company",r:89,m:"Reggie McKenzie, Joe DeLamielleure, Dave Foley"},
@@ -533,12 +543,6 @@ const DATA={
     {t:"Lions",e:"1950s",n:"Motor City D",r:88,m:"Joe Schmidt, Night Train Lane, Yale Lary"},
     {t:"Browns",e:"1950s",n:"Browns Front",r:84,m:"Len Ford, Bill Willis, Don Colo"},
     {t:"Eagles",e:"1950s",n:"Suicide Seven",r:85,m:"Chuck Bednarik, Tom Brookshier, Maxie Baughan"},
-    {t:"Rams",e:"1960s",n:"Fearsome Foursome",r:93,m:"Deacon Jones, Merlin Olsen, Lamar Lundy, Rosey Grier"},
-    {t:"Packers",e:"1960s",n:"Lombardi's D",r:92,m:"Willie Davis, Ray Nitschke, Herb Adderley, Willie Wood"},
-    {t:"Bears",e:"1960s",n:"Monsters of the Midway",r:91,m:"Dick Butkus, Doug Atkins, Bill George"},
-    {t:"Vikings",e:"1960s",n:"Purple People Eaters",r:91,m:"Alan Page, Carl Eller, Jim Marshall, Gary Larsen"},
-    {t:"Cowboys",e:"1960s",n:"Doomsday Defense",r:90,m:"Bob Lilly, Chuck Howley, Mel Renfro"},
-    {t:"Chiefs",e:"1960s",n:"Stram's Stars",r:90,m:"Bobby Bell, Buck Buchanan, Willie Lanier"},
     {t:"Steelers",e:"1970s",n:"Steel Curtain",r:99,m:"Joe Greene, Jack Lambert, Jack Ham, Mel Blount, L.C. Greenwood"},
     {t:"Vikings",e:"1970s",n:"Purple People Eaters",r:92,m:"Alan Page, Carl Eller, Jim Marshall"},
     {t:"Cowboys",e:"1970s",n:"Doomsday II",r:92,m:"Randy White, Ed 'Too Tall' Jones, Harvey Martin"},
@@ -604,13 +608,58 @@ const DATA={
     {t:"Bears",e:"2010s",n:"Mack Attack",r:88,m:"Khalil Mack, Akiem Hicks, Eddie Jackson, Roquan Smith"},
     {t:"Broncos",e:"1990s",n:"Orange Crush II",r:86,m:"Steve Atwater, Bill Romanowski, Neil Smith"},
     {t:"Cardinals",e:"2000s",n:"Desert Swarm",r:86,m:"Karlos Dansby, Adrian Wilson, Darnell Dockett"}
+  ],
+  ST:[
+    {t:"Bears",e:"2000s",n:"Devin Hester",r:96,m:"Greatest returner ever; 20 return TDs"},
+    {t:"Ravens",e:"2010s",n:"Justin Tucker",r:95,m:"Most accurate kicker in NFL history"},
+    {t:"Patriots",e:"2000s",n:"Adam Vinatieri",r:94,m:"Clutch Super Bowl-winning field goals"},
+    {t:"Raiders",e:"1970s",n:"Ray Guy",r:87,m:"First pure punter in the Hall of Fame"},
+    {t:"Saints",e:"1980s",n:"Morten Andersen",r:87,m:"All-time leading scorer for years"},
+    {t:"Vikings",e:"2010s",n:"Cordarrelle Patterson",r:86,m:"Record-tying kick-return TDs"},
+    {t:"Chiefs",e:"2020s",n:"Harrison Butker",r:86,m:"Three-time Super Bowl champ kicker"},
+    {t:"Packers",e:"1990s",n:"Desmond Howard",r:85,m:"Super Bowl XXXI MVP on returns"},
+    {t:"Browns",e:"2010s",n:"Josh Cribbs",r:85,m:"8 career kick-return touchdowns"},
+    {t:"Bills",e:"1990s",n:"Steve Tasker",r:84,m:"7x Pro Bowl special teams ace"},
+    {t:"Raiders",e:"2000s",n:"Sebastian Janikowski",r:84,m:"Booming 60+ yard field goals"},
+    {t:"Cowboys",e:"2010s",n:"Dan Bailey",r:82,m:"One of the most accurate ever"},
+    {t:"Lions",e:"1990s",n:"Jason Hanson",r:82,m:"21 seasons, all with Detroit"},
+    {t:"Titans",e:"2000s",n:"Rob Bironas",r:81,m:"8 field goals in one game"},
+    {t:"Bears",e:"1980s",n:"Kevin Butler",r:80,m:"Kicker for the '85 champs"},
+    {t:"49ers",e:"1980s",n:"Ray Wersching",r:79,m:"Money kicker for two title teams"}
+  ],
+  COACH:[
+    {t:"Packers",e:"1960s",n:"Vince Lombardi",r:99,m:"5 titles in 7 years; first 2 Super Bowls"},
+    {t:"49ers",e:"1980s",n:"Bill Walsh",r:96,m:"West Coast offense; 3 Super Bowls"},
+    {t:"Patriots",e:"2010s",n:"Bill Belichick",r:97,m:"6-time Super Bowl champion"},
+    {t:"Chiefs",e:"2020s",n:"Andy Reid",r:95,m:"3 Super Bowls; offensive mastermind"},
+    {t:"Dolphins",e:"1970s",n:"Don Shula",r:94,m:"Most wins ever; 1972 perfect season"},
+    {t:"Steelers",e:"1970s",n:"Chuck Noll",r:93,m:"4 Super Bowls in 6 years"},
+    {t:"Cowboys",e:"1970s",n:"Tom Landry",r:92,m:"2 Super Bowls; 20 straight winning seasons"},
+    {t:"Browns",e:"1950s",n:"Paul Brown",r:92,m:"Innovator; 7 pro titles"},
+    {t:"Redskins",e:"1980s",n:"Joe Gibbs",r:91,m:"3 Super Bowls with 3 QBs"},
+    {t:"Giants",e:"1980s",n:"Bill Parcells",r:90,m:"2 Super Bowls; master rebuilder"},
+    {t:"Cowboys",e:"1990s",n:"Jimmy Johnson",r:89,m:"Back-to-back Super Bowls"},
+    {t:"Patriots",e:"2000s",n:"Bill Belichick",r:95,m:"3 Super Bowls in 4 years"},
+    {t:"Bears",e:"1950s",n:"George Halas",r:88,m:"Papa Bear; 6 NFL championships"},
+    {t:"Raiders",e:"1970s",n:"John Madden",r:88,m:".759 win pct; Super Bowl XI"},
+    {t:"Broncos",e:"1990s",n:"Mike Shanahan",r:86,m:"Back-to-back titles with Elway"},
+    {t:"Colts",e:"2000s",n:"Tony Dungy",r:86,m:"First Black coach to win a Super Bowl"},
+    {t:"Seahawks",e:"2010s",n:"Pete Carroll",r:87,m:"Legion of Boom; Super Bowl XLVIII"},
+    {t:"Rams",e:"2020s",n:"Sean McVay",r:88,m:"Youngest coach to win a Super Bowl"},
+    {t:"Bills",e:"1990s",n:"Marv Levy",r:85,m:"4 straight Super Bowl trips"},
+    {t:"Steelers",e:"2000s",n:"Bill Cowher",r:85,m:"Super Bowl XL champion"},
+    {t:"Steelers",e:"2010s",n:"Mike Tomlin",r:85,m:"No losing season as head coach"},
+    {t:"Ravens",e:"2010s",n:"John Harbaugh",r:85,m:"Super Bowl XLVII winner"},
+    {t:"49ers",e:"2020s",n:"Kyle Shanahan",r:86,m:"Offensive play-calling guru"},
+    {t:"Eagles",e:"2020s",n:"Nick Sirianni",r:84,m:"Super Bowl LIX champion"}
   ]
 };
 
-/* Keep only eras in play (drops 1960s), then lift every rating toward the top.
-   True peak GOATs hit 100; everyone else gets pulled up 40% of the way to 100. */
+/* Keep only eras in play (drops 1960s for players; coaches keep their real era),
+   then lift every rating toward the top. Peak GOATs hit 100; everyone else gets
+   pulled up 45% of the way to 100. */
 for(const k in DATA){
-  DATA[k]=DATA[k].filter(p=>ERAS.includes(p.e))
+  DATA[k]=DATA[k].filter(p=>k==="COACH"||ERAS.includes(p.e))
     .map(p=>({...p,r:p.r>=99?100:Math.min(100,Math.round(p.r+(100-p.r)*0.45))}));
 }
 
@@ -622,9 +671,11 @@ const SLOTS=[
   {pos:"WR3",label:"Wide Receiver 3",key:"WR"},
   {pos:"TE",label:"Tight End",key:"TE"},
   {pos:"OL",label:"Offensive Line",key:"OL"},
-  {pos:"DEF",label:"Defense",key:"DEF"}
+  {pos:"DEF",label:"Defense",key:"DEF"},
+  {pos:"K/R",label:"Kicker / Returner",key:"ST"},
+  {pos:"HC",label:"Head Coach",key:"COACH"}
 ];
-const WEIGHT={QB:1.4,RB:1.0,WR:0.9,TE:0.7,OL:1.5,DEF:1.8};
+const WEIGHT={QB:1.4,RB:1.0,WR:0.9,TE:0.7,OL:1.5,DEF:1.8,ST:0.5,COACH:1.1};
 const N_CARDS=4,RESPINS=4;
 
 let showRatings=true,roster=[],cur=0,respinsLeft=RESPINS;
@@ -637,6 +688,127 @@ function allTeams(key){return [...new Set(poolFor(key).map(e=>e.t))];}
 function bestFor(key,t,e){const l=poolFor(key).filter(x=>x.t===t&&x.e===e).sort((a,b)=>b.r-a.r);return l[0];}
 function setMode(c){showRatings=c;$("modeClassic").classList.toggle("sel",c);$("modeLegend").classList.toggle("sel",!c);}
 function toggleTheme(){const l=document.body.classList.toggle("light");$("themeToggle").textContent=l?"Dark Mode":"Light Mode";}
+
+/* ---- Fun facts (skill players; units/coaches/special-teams use their member line) ---- */
+const FACTS={
+  "Tom Brady":"7x Super Bowl champ, 5x SB MVP","Patrick Mahomes":"3x Super Bowl MVP",
+  "Joe Montana":"4-0 in Super Bowls, 3x SB MVP","Peyton Manning":"5x MVP, 2x champ",
+  "Aaron Rodgers":"4x MVP, Super Bowl XLV champ","Johnny Unitas":"3x MVP, 47-game TD streak",
+  "Otto Graham":"Reached the title game all 10 seasons","Dan Marino":"5,084 passing yards in 1984",
+  "Brett Favre":"3x MVP, 297 straight starts","John Elway":"Back-to-back titles, The Drive",
+  "Steve Young":"6 TDs in Super Bowl XXIX","Drew Brees":"NFL all-time completions leader",
+  "Josh Allen":"Dual-threat franchise QB","Lamar Jackson":"2x MVP, unanimous in 2019",
+  "Joe Burrow":"Led Cincinnati to Super Bowl LVI","Roger Staubach":"2x champ, comeback king",
+  "Terry Bradshaw":"4x Super Bowl champion","Kurt Warner":"Greatest Show on Turf MVP",
+  "Jim Kelly":"4 straight Super Bowl trips","Warren Moon":"Nine pro seasons before the NFL",
+  "Barry Sanders":"10 straight 1,000-yard seasons","Walter Payton":"16,726 career rushing yards",
+  "Emmitt Smith":"NFL all-time rushing leader","Eric Dickerson":"2,105 rush yards in 1984",
+  "LaDainian Tomlinson":"31 touchdowns in 2006","Adrian Peterson":"2,097 yards, 2012 MVP",
+  "Marshall Faulk":"Dual-threat triple-crown back","O.J. Simpson":"First to 2,000 yards (1973)",
+  "Earl Campbell":"3x rushing champ bulldozer","Derrick Henry":"2,027 rushing yards in 2020",
+  "Christian McCaffrey":"1,000 rush + 1,000 receiving","Tony Dorsett":"99-yard touchdown run",
+  "Thurman Thomas":"1991 league MVP","Terrell Davis":"2,008 yds, Super Bowl XXXII MVP",
+  "Saquon Barkley":"2,000+ rushing yards in 2024","Marcus Allen":"Super Bowl XVIII MVP",
+  "Jerry Rice":"All-time leader: catches, yards, TDs","Randy Moss":"23 TD catches in 2007",
+  "Calvin Johnson":"1,964 receiving yards in 2012","Terrell Owens":"153 career receiving TDs",
+  "Larry Fitzgerald":"2nd all-time in receiving yards","Marvin Harrison":"143 catches in 2002",
+  "Julio Jones":"Back-to-back 1,400-yard seasons","Antonio Brown":"6 straight 100-catch years",
+  "Justin Jefferson":"Fastest ever to 5,000 yards","Tyreek Hill":"Game-breaking deep threat",
+  "Ja'Marr Chase":"2024 receiving triple crown","Davante Adams":"Elite route technician",
+  "Steve Largent":"Held every major WR record","Cris Carter":"All he does is catch touchdowns",
+  "Michael Irvin":"3x champ, The Playmaker","Cooper Kupp":"2021 receiving triple crown",
+  "Andre Johnson":"2x receiving yards champion","Stefon Diggs":"The Minneapolis Miracle",
+  "Rob Gronkowski":"4x Super Bowl champion","Tony Gonzalez":"1,325 career receptions",
+  "Travis Kelce":"7 straight 1,000-yard seasons","Antonio Gates":"116 career TD catches",
+  "Shannon Sharpe":"3x Super Bowl champion","Kellen Winslow":"Revolutionized the position",
+  "George Kittle":"Elite blocker and receiver","Jason Witten":"Cowboys all-time receptions"
+};
+function factFor(b){return b.m||FACTS[b.n]||"";}
+
+/* ---- Sound (synthesized, no files) ---- */
+let muted=(localStorage.getItem("sbbMuted")==="1");
+let _actx=null;
+function actx(){if(!_actx){try{_actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){_actx=null;}}return _actx;}
+function blip(freq,start,dur,type,vol){const a=actx();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type||"sine";o.frequency.value=freq;o.connect(g);g.connect(a.destination);const t=a.currentTime+start;g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol||0.15,t+0.015);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.start(t);o.stop(t+dur+0.02);}
+function sfxWhistle(){if(muted)return;const a=actx();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type="sine";o.connect(g);g.connect(a.destination);const t=a.currentTime;o.frequency.setValueAtTime(1650,t);o.frequency.linearRampToValueAtTime(2150,t+0.10);g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(0.07,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.16);o.start(t);o.stop(t+0.18);}
+function sfxWin(){if(muted)return;[523.25,659.25,783.99,1046.5].forEach((f,i)=>blip(f,i*0.13,0.55,"triangle",0.18));}
+function toggleMute(){muted=!muted;localStorage.setItem("sbbMuted",muted?"1":"0");$("muteToggle").innerHTML=muted?"&#128263;":"&#128266;";}
+
+/* ---- Confetti ---- */
+function confettiBurst(){
+  const cv=$("confetti");if(!cv)return;cv.style.display="block";
+  const ctx=cv.getContext("2d"),W=cv.width=innerWidth,H=cv.height=innerHeight;
+  const cols=["#f5c518","#2bb673","#f3f3ec","#e0473b","#c79a07"],ps=[];
+  for(let i=0;i<170;i++)ps.push({x:Math.random()*W,y:-20-Math.random()*H*0.5,vx:(Math.random()-0.5)*3,vy:2+Math.random()*4,s:5+Math.random()*7,c:cols[i%cols.length],r:Math.random()*Math.PI,vr:(Math.random()-0.5)*0.3});
+  let f=0;
+  function step(){f++;ctx.clearRect(0,0,W,H);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.05;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*0.6);ctx.restore();});if(f<180)requestAnimationFrame(step);else{ctx.clearRect(0,0,W,H);cv.style.display="none";}}
+  requestAnimationFrame(step);
+}
+
+/* ---- Persistent stats / Hall of Fame ---- */
+function loadStats(){try{return JSON.parse(localStorage.getItem("sbbStats"))||{};}catch(e){return {};}}
+function recordGame(w,l,score,champ){
+  const s=loadStats();
+  s.games=(s.games||0)+1;
+  if(w>(s.bestWins==null?-1:s.bestWins)){s.bestWins=w;s.bestLosses=l;}
+  s.streak=champ?((s.streak||0)+1):0;
+  s.bestStreak=Math.max(s.bestStreak||0,s.streak);
+  if(w>=17)s.perfect=(s.perfect||0)+1;
+  s.bestRating=Math.max(s.bestRating||0,Math.round(score*10)/10);
+  localStorage.setItem("sbbStats",JSON.stringify(s));
+  return s;
+}
+function renderHOF(){
+  const s=loadStats(),host=$("hof");if(!host)return;
+  if(!s.games){host.style.display="none";return;}
+  host.style.display="block";
+  const best=(s.bestWins!=null)?`${s.bestWins}-${s.bestLosses}`:"—";
+  const cells=[["Games",s.games],["Best record",best],["SB streak",s.bestStreak||0],["17-0 seasons",s.perfect||0],["Top rating",(s.bestRating||0).toFixed(1)]];
+  $("hofgrid").innerHTML=cells.map(c=>`<div class="hofstat"><div class="v">${c[1]}</div><div class="k">${c[0]}</div></div>`).join("");
+}
+
+/* ---- Share ---- */
+let lastResult=null;
+function summaryText(){
+  if(!lastResult)return "";
+  const flag=lastResult.champ?" 🏆":"";
+  const stars=roster.slice(0,5).map(p=>p.n).join(", ");
+  return `Superbowl Bound — my all-time team went ${lastResult.wins}-${lastResult.losses}${flag} (${lastResult.outcome}). Headliners: ${stars}. Build yours!`;
+}
+function shareNote(t){const n=$("shareNote");if(!n)return;n.textContent=t;setTimeout(()=>{if(n.textContent===t)n.textContent="";},2400);}
+async function shareResult(){
+  const text=summaryText();
+  try{if(navigator.share){await navigator.share({title:"Superbowl Bound",text});return;}}
+  catch(e){if(e&&e.name==="AbortError")return;}
+  try{await navigator.clipboard.writeText(text);shareNote("Copied to clipboard!");}
+  catch(e){shareNote("Couldn't copy automatically — try again.");}
+}
+function roundRect(x,X,Y,W,H,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+W,Y,X+W,Y+H,r);x.arcTo(X+W,Y+H,X,Y+H,r);x.arcTo(X,Y+H,X,Y,r);x.arcTo(X,Y,X+W,Y,r);x.closePath();}
+function saveImage(){
+  if(!lastResult)return;
+  const W=1080,H=1350,c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");
+  x.fillStyle="#0b0f0d";x.fillRect(0,0,W,H);
+  x.fillStyle="#121815";roundRect(x,40,40,W-80,H-80,28);x.fill();
+  x.strokeStyle="#27332c";x.lineWidth=2;roundRect(x,40,40,W-80,H-80,28);x.stroke();
+  x.textAlign="center";
+  x.fillStyle="#2bb673";x.font="600 26px Oswald, Arial, sans-serif";x.fillText("SUPERBOWL BOUND",W/2,128);
+  x.fillStyle=lastResult.champ?"#f5c518":"#f3f3ec";x.font="700 140px Anton, Arial, sans-serif";x.fillText(lastResult.wins+"-"+lastResult.losses,W/2,290);
+  x.fillStyle="#f3f3ec";x.font="700 38px Oswald, Arial, sans-serif";x.fillText(lastResult.outcome.toUpperCase(),W/2,350);
+  x.fillStyle="#8a978f";x.font="400 26px Archivo, Arial, sans-serif";x.fillText("Team rating "+lastResult.score.toFixed(1),W/2,398);
+  let y=470;
+  roster.forEach(p=>{
+    x.textAlign="left";x.fillStyle="#f5c518";x.font="700 24px Oswald, Arial, sans-serif";x.fillText(p.slotPos,90,y);
+    x.fillStyle="#f3f3ec";x.font="600 30px Oswald, Arial, sans-serif";x.fillText(p.n,235,y);
+    x.fillStyle="#8a978f";x.font="400 21px Archivo, Arial, sans-serif";x.fillText(p.t+" · "+p.e,235,y+27);
+    x.textAlign="right";x.fillStyle="#f3f3ec";x.font="700 34px Anton, Arial, sans-serif";x.fillText(p.r,W-90,y+10);
+    y+=82;
+  });
+  x.textAlign="center";x.fillStyle="#8a978f";x.font="400 22px Archivo, Arial, sans-serif";x.fillText("Build your all-time roster",W/2,H-66);
+  c.toBlob(b=>{if(!b){shareNote("Image export not supported here.");return;}const url=URL.createObjectURL(b);const a=document.createElement("a");a.href=url;a.download="superbowl-bound.png";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);shareNote("Image saved!");});
+}
+
+/* ---- Animated count-up ---- */
+function animateCount(el,to,dur,fmt){const start=performance.now();function tick(now){let t=Math.min(1,(now-start)/dur);t=1-Math.pow(1-t,3);const v=to*t;el.textContent=fmt?fmt(v):String(Math.round(v));if(t<1)requestAnimationFrame(tick);else el.textContent=fmt?fmt(to):String(Math.round(to));}requestAnimationFrame(tick);}
 
 function startGame(){
   roster=[];cur=0;respinsLeft=RESPINS;
@@ -748,7 +920,8 @@ function renderCard(i){
   const key=SLOTS[cur].key,c=cards[i],b=bestFor(key,c.t,c.e),el=$("p"+i);
   if(!b){el.innerHTML="";return;}
   const rt=showRatings?`<div class="rt">${b.r}</div>`:`<div class="rt" style="color:var(--mute);font-size:16px">?</div>`;
-  const mem=b.m?`<div class="mem">${b.m}</div>`:"";
+  const fact=factFor(b);
+  const mem=fact?`<div class="mem">${fact}</div>`:"";
   el.innerHTML=`${rt}<div><div class="nm">${b.n}</div>${mem}</div>`;
 }
 
@@ -763,6 +936,7 @@ function draft(){
   if(spinning||selected<0)return;
   const key=SLOTS[cur].key,c=cards[selected],b=bestFor(key,c.t,c.e);
   if(!b)return;
+  sfxWhistle();
   roster.push({...b,slotPos:SLOTS[cur].pos,slotKey:SLOTS[cur].key});
   cur++;refreshTrack();nextSlot();
 }
@@ -772,7 +946,7 @@ function showResults(){
   let wsum=0,total=0;
   roster.forEach(p=>{const w=WEIGHT[p.slotKey];wsum+=p.r*w;total+=w;});
   const score=wsum/total;
-  let wins=Math.round(17/(1+Math.exp(-(score-87.5)/3.0)));
+  let wins=Math.round(17/(1+Math.exp(-(score-87.3)/3.0)));
   if(wins>17)wins=17;
   const losses=17-wins;
   let outcome,ring,cls;
@@ -782,20 +956,33 @@ function showResults(){
   else if(wins>=12){outcome="Divisional Round";ring="In the hunt, knocked out in the second round.";cls="mid";}
   else if(wins>=9){outcome="Wild Card Exit";ring="Squeaked into the playoffs, one and done.";cls="mid";}
   else{outcome="Missed the Playoffs";ring="The pieces never came together this year.";cls="bad";}
-  const rec=$("rec");rec.textContent=`${wins}-${losses}`;rec.className="rec "+cls;
+  const champ=outcome==="Super Bowl Champions";
+  const rec=$("rec");rec.className="rec "+cls;
   $("outcome").textContent=outcome;$("ringline").textContent=ring;
-  $("ratingNum").textContent=score.toFixed(1);
+  // animated record + rating reveal
+  const startW=performance.now();
+  (function tick(now){let t=Math.min(1,(now-startW)/900);t=1-Math.pow(1-t,3);const w=Math.round(wins*t);rec.textContent=w+"-"+(17-w);if(t<1)requestAnimationFrame(tick);else rec.textContent=wins+"-"+losses;})(startW);
+  animateCount($("ratingNum"),score,900,v=>v.toFixed(1));
   setTimeout(()=>{$("ratingFill").style.width=Math.max(0,Math.min(100,((score-70)/30)*100))+"%";},120);
   const bd=$("breakdown");bd.innerHTML="";
   roster.forEach(p=>{
     const row=document.createElement("div");row.className="brow";
     const sub=p.t+" &bull; "+p.e;
-    row.innerHTML=`<div class="bp">${p.slotPos}</div><div class="bn"><b>${p.n}</b><small>${sub}</small></div><div class="br">${p.r}</div>`;
+    const fact=factFor(p);
+    const fhtml=fact?`<small style="display:block;color:var(--green);opacity:.8">${fact}</small>`:"";
+    row.innerHTML=`<div class="bp">${p.slotPos}</div><div class="bn"><b>${p.n}</b><small>${sub}</small>${fhtml}</div><div class="br">${p.r}</div>`;
     bd.appendChild(row);
   });
+  lastResult={wins,losses,outcome,score,champ};
+  recordGame(wins,losses,score,champ);
+  if(champ){confettiBurst();sfxWin();}
 }
 
-function reset(){$("results").classList.remove("on");$("start").classList.add("on");}
+function reset(){$("results").classList.remove("on");$("start").classList.add("on");renderHOF();}
+
+/* init */
+renderHOF();
+$("muteToggle").innerHTML=muted?"&#128263;":"&#128266;";
 </script>
 </body>
 </html>
