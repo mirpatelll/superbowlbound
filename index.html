@@ -758,16 +758,9 @@ function summaryText(){
   return `Superbowl Bound — my all-time team went ${lastResult.wins}-${lastResult.losses}${flag} (${lastResult.outcome}). Headliners: ${stars}. Build yours!`;
 }
 function shareNote(t){const n=$("shareNote");if(!n)return;n.textContent=t;setTimeout(()=>{if(n.textContent===t)n.textContent="";},2400);}
-async function shareResult(){
-  const text=summaryText();
-  try{if(navigator.share){await navigator.share({title:"Superbowl Bound",text});return;}}
-  catch(e){if(e&&e.name==="AbortError")return;}
-  try{await navigator.clipboard.writeText(text);shareNote("Copied to clipboard!");}
-  catch(e){shareNote("Couldn't copy automatically — try again.");}
-}
 function roundRect(x,X,Y,W,H,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+W,Y,X+W,Y+H,r);x.arcTo(X+W,Y+H,X,Y+H,r);x.arcTo(X,Y+H,X,Y,r);x.arcTo(X,Y,X+W,Y,r);x.closePath();}
-function saveImage(){
-  if(!lastResult)return;
+/* draw the shareable result card to a canvas */
+function renderShareCanvas(){
   const W=1080,H=1350,c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");
   x.fillStyle="#0b0f0d";x.fillRect(0,0,W,H);
   x.fillStyle="#121815";roundRect(x,40,40,W-80,H-80,28);x.fill();
@@ -786,7 +779,30 @@ function saveImage(){
     y+=82;
   });
   x.textAlign="center";x.fillStyle="#8a978f";x.font="400 22px Archivo, Arial, sans-serif";x.fillText("Build your all-time roster",W/2,H-66);
-  c.toBlob(b=>{if(!b){shareNote("Image export not supported here.");return;}const url=URL.createObjectURL(b);const a=document.createElement("a");a.href=url;a.download="superbowl-bound.png";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);shareNote("Image saved!");});
+  return c;
+}
+function downloadBlob(b){const url=URL.createObjectURL(b);const a=document.createElement("a");a.href=url;a.download="superbowl-bound.png";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
+/* Share the result as an image (with a caption), falling back gracefully */
+function shareResult(){
+  if(!lastResult)return;
+  const text=summaryText();
+  renderShareCanvas().toBlob(async(blob)=>{
+    let file=null;
+    if(blob){try{file=new File([blob],"superbowl-bound.png",{type:"image/png"});}catch(e){file=null;}}
+    if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file],text,title:"Superbowl Bound"});return;}
+      catch(e){if(e&&e.name==="AbortError")return;}
+    }
+    try{if(navigator.share){await navigator.share({title:"Superbowl Bound",text});return;}}
+    catch(e){if(e&&e.name==="AbortError")return;}
+    try{await navigator.clipboard.writeText(text);}catch(e){}
+    if(blob){downloadBlob(blob);shareNote("Caption copied — image saved!");}
+    else shareNote("Caption copied to clipboard!");
+  },"image/png");
+}
+function saveImage(){
+  if(!lastResult)return;
+  renderShareCanvas().toBlob(b=>{if(!b){shareNote("Image export not supported here.");return;}downloadBlob(b);shareNote("Image saved!");},"image/png");
 }
 
 /* ---- Animated count-up ---- */
