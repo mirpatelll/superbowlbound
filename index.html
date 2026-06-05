@@ -82,7 +82,7 @@
   .btn.draft:hover{filter:brightness(1.07)}
   .btn:disabled{opacity:.32;cursor:not-allowed;filter:grayscale(.4)}
 
-  .track{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-bottom:18px}
+  .track{display:grid;grid-template-columns:repeat(9,1fr);gap:6px;margin-bottom:18px}
   .slot{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 4px;text-align:center;min-height:60px;display:flex;flex-direction:column;justify-content:center;transition:.2s}
   .slot.cur{border-color:var(--gold);box-shadow:0 0 0 2px rgba(245,197,24,.18) inset}
   .slot.done{border-color:var(--green-d)}
@@ -211,7 +211,7 @@
       <div class="kick">All Time Roster Builder</div>
       <h1>Superbowl<br><span>Bound</span></h1>
     </div>
-    <p class="tag">Pick a legend each round, build all ten slots, and see how far your dream roster runs.</p>
+    <p class="tag">Pick a legend each round, build all nine slots, and see how far your dream roster runs.</p>
 
     <div class="hof card" id="hof" style="display:none">
       <div class="pad">
@@ -224,9 +224,9 @@
       <div class="pad">
         <h3>How it works</h3>
         <ul>
-          <li>Build 10 slots: QB, RB, three WRs, TE, an offensive line, a defense, a kicker/returner, and a head coach.</li>
+          <li>Build 9 slots: QB, RB, three WRs, TE, an offensive line, a defense, and a head coach.</li>
           <li>Every round you get four cards. Each is a franchise, an era, and that team's best legend from it. Pick one.</li>
-          <li>The line, defense, and special-teams slots draft famous units like the Hogs, the Steel Curtain, or the Legion of Boom.</li>
+          <li>The line and defense slots draft famous units like the Hogs, the Steel Curtain, or the Legion of Boom.</li>
           <li>Don't love your options? Hit Respin All to reroll all four cards into brand new franchises, eras, and legends. You get four respins per game.</li>
           <li>Your roster gets one blended rating run through a win curve. Only a near perfect build goes 17 and 0.</li>
         </ul>
@@ -253,7 +253,7 @@
     <div class="card">
       <div class="pad">
         <div class="round">
-          <span class="r" id="roundLabel">Round 1 of 10</span>
+          <span class="r" id="roundLabel">Round 1 of 9</span>
           <span class="need">On the clock: <em id="needPos">QB</em></span>
         </div>
         <div class="respinrow">
@@ -609,49 +609,31 @@ const DATA={
     {t:"Broncos",e:"1990s",n:"Orange Crush II",r:86,m:"Steve Atwater, Bill Romanowski, Neil Smith"},
     {t:"Cardinals",e:"2000s",n:"Desert Swarm",r:86,m:"Karlos Dansby, Adrian Wilson, Darnell Dockett"}
   ],
-  ST:[
-    {t:"Bears",e:"2000s",n:"Devin Hester",r:96,m:"Greatest returner ever; 20 return TDs"},
-    {t:"Ravens",e:"2010s",n:"Justin Tucker",r:95,m:"Most accurate kicker in NFL history"},
-    {t:"Patriots",e:"2000s",n:"Adam Vinatieri",r:94,m:"Clutch Super Bowl-winning field goals"},
-    {t:"Raiders",e:"1970s",n:"Ray Guy",r:87,m:"First pure punter in the Hall of Fame"},
-    {t:"Saints",e:"1980s",n:"Morten Andersen",r:87,m:"All-time leading scorer for years"},
-    {t:"Vikings",e:"2010s",n:"Cordarrelle Patterson",r:86,m:"Record-tying kick-return TDs"},
-    {t:"Chiefs",e:"2020s",n:"Harrison Butker",r:86,m:"Three-time Super Bowl champ kicker"},
-    {t:"Packers",e:"1990s",n:"Desmond Howard",r:85,m:"Super Bowl XXXI MVP on returns"},
-    {t:"Browns",e:"2010s",n:"Josh Cribbs",r:85,m:"8 career kick-return touchdowns"},
-    {t:"Bills",e:"1990s",n:"Steve Tasker",r:84,m:"7x Pro Bowl special teams ace"},
-    {t:"Raiders",e:"2000s",n:"Sebastian Janikowski",r:84,m:"Booming 60+ yard field goals"},
-    {t:"Cowboys",e:"2010s",n:"Dan Bailey",r:82,m:"One of the most accurate ever"},
-    {t:"Lions",e:"1990s",n:"Jason Hanson",r:82,m:"21 seasons, all with Detroit"},
-    {t:"Titans",e:"2000s",n:"Rob Bironas",r:81,m:"8 field goals in one game"},
-    {t:"Bears",e:"1980s",n:"Kevin Butler",r:80,m:"Kicker for the '85 champs"},
-    {t:"49ers",e:"1980s",n:"Ray Wersching",r:79,m:"Money kicker for two title teams"}
-  ],
   COACH:[
     {t:"Packers",e:"1960s",n:"Vince Lombardi",r:99,m:"5 titles in 7 years; first 2 Super Bowls"},
-    {t:"49ers",e:"1980s",n:"Bill Walsh",r:96,m:"West Coast offense; 3 Super Bowls"},
-    {t:"Patriots",e:"2010s",n:"Bill Belichick",r:97,m:"6-time Super Bowl champion"},
-    {t:"Chiefs",e:"2020s",n:"Andy Reid",r:95,m:"3 Super Bowls; offensive mastermind"},
-    {t:"Dolphins",e:"1970s",n:"Don Shula",r:94,m:"Most wins ever; 1972 perfect season"},
-    {t:"Steelers",e:"1970s",n:"Chuck Noll",r:93,m:"4 Super Bowls in 6 years"},
-    {t:"Cowboys",e:"1970s",n:"Tom Landry",r:92,m:"2 Super Bowls; 20 straight winning seasons"},
-    {t:"Browns",e:"1950s",n:"Paul Brown",r:92,m:"Innovator; 7 pro titles"},
-    {t:"Redskins",e:"1980s",n:"Joe Gibbs",r:91,m:"3 Super Bowls with 3 QBs"},
-    {t:"Giants",e:"1980s",n:"Bill Parcells",r:90,m:"2 Super Bowls; master rebuilder"},
-    {t:"Cowboys",e:"1990s",n:"Jimmy Johnson",r:89,m:"Back-to-back Super Bowls"},
+    {t:"Patriots",e:"2010s",n:"Bill Belichick",r:98,m:"6-time Super Bowl champion"},
+    {t:"49ers",e:"1980s",n:"Bill Walsh",r:97,m:"West Coast offense; 3 Super Bowls"},
+    {t:"Chiefs",e:"2020s",n:"Andy Reid",r:96,m:"3 Super Bowls; offensive mastermind"},
+    {t:"Dolphins",e:"1970s",n:"Don Shula",r:96,m:"Most wins ever; 1972 perfect season"},
+    {t:"Steelers",e:"1970s",n:"Chuck Noll",r:95,m:"4 Super Bowls in 6 years"},
     {t:"Patriots",e:"2000s",n:"Bill Belichick",r:95,m:"3 Super Bowls in 4 years"},
-    {t:"Bears",e:"1950s",n:"George Halas",r:88,m:"Papa Bear; 6 NFL championships"},
-    {t:"Raiders",e:"1970s",n:"John Madden",r:88,m:".759 win pct; Super Bowl XI"},
-    {t:"Broncos",e:"1990s",n:"Mike Shanahan",r:86,m:"Back-to-back titles with Elway"},
-    {t:"Colts",e:"2000s",n:"Tony Dungy",r:86,m:"First Black coach to win a Super Bowl"},
-    {t:"Seahawks",e:"2010s",n:"Pete Carroll",r:87,m:"Legion of Boom; Super Bowl XLVIII"},
-    {t:"Rams",e:"2020s",n:"Sean McVay",r:88,m:"Youngest coach to win a Super Bowl"},
-    {t:"Bills",e:"1990s",n:"Marv Levy",r:85,m:"4 straight Super Bowl trips"},
-    {t:"Steelers",e:"2000s",n:"Bill Cowher",r:85,m:"Super Bowl XL champion"},
-    {t:"Steelers",e:"2010s",n:"Mike Tomlin",r:85,m:"No losing season as head coach"},
-    {t:"Ravens",e:"2010s",n:"John Harbaugh",r:85,m:"Super Bowl XLVII winner"},
-    {t:"49ers",e:"2020s",n:"Kyle Shanahan",r:86,m:"Offensive play-calling guru"},
-    {t:"Eagles",e:"2020s",n:"Nick Sirianni",r:84,m:"Super Bowl LIX champion"}
+    {t:"Cowboys",e:"1970s",n:"Tom Landry",r:94,m:"2 Super Bowls; 20 straight winning seasons"},
+    {t:"Browns",e:"1950s",n:"Paul Brown",r:94,m:"Innovator; 7 pro titles"},
+    {t:"Redskins",e:"1980s",n:"Joe Gibbs",r:93,m:"3 Super Bowls with 3 QBs"},
+    {t:"Giants",e:"1980s",n:"Bill Parcells",r:92,m:"2 Super Bowls; master rebuilder"},
+    {t:"Cowboys",e:"1990s",n:"Jimmy Johnson",r:91,m:"Back-to-back Super Bowls"},
+    {t:"Bears",e:"1950s",n:"George Halas",r:91,m:"Papa Bear; 6 NFL championships"},
+    {t:"Raiders",e:"1970s",n:"John Madden",r:91,m:".759 win pct; Super Bowl XI"},
+    {t:"Seahawks",e:"2010s",n:"Pete Carroll",r:90,m:"Legion of Boom; Super Bowl XLVIII"},
+    {t:"Rams",e:"2020s",n:"Sean McVay",r:90,m:"Youngest coach to win a Super Bowl"},
+    {t:"Broncos",e:"1990s",n:"Mike Shanahan",r:90,m:"Back-to-back titles with Elway"},
+    {t:"Colts",e:"2000s",n:"Tony Dungy",r:90,m:"First Black coach to win a Super Bowl"},
+    {t:"49ers",e:"2020s",n:"Kyle Shanahan",r:89,m:"Offensive play-calling guru"},
+    {t:"Bills",e:"1990s",n:"Marv Levy",r:89,m:"4 straight Super Bowl trips"},
+    {t:"Steelers",e:"2000s",n:"Bill Cowher",r:89,m:"Super Bowl XL champion"},
+    {t:"Steelers",e:"2010s",n:"Mike Tomlin",r:89,m:"No losing season as head coach"},
+    {t:"Ravens",e:"2010s",n:"John Harbaugh",r:88,m:"Super Bowl XLVII winner"},
+    {t:"Eagles",e:"2020s",n:"Nick Sirianni",r:87,m:"Super Bowl LIX champion"}
   ]
 };
 
@@ -672,10 +654,9 @@ const SLOTS=[
   {pos:"TE",label:"Tight End",key:"TE"},
   {pos:"OL",label:"Offensive Line",key:"OL"},
   {pos:"DEF",label:"Defense",key:"DEF"},
-  {pos:"K/R",label:"Kicker / Returner",key:"ST"},
   {pos:"HC",label:"Head Coach",key:"COACH"}
 ];
-const WEIGHT={QB:1.4,RB:1.0,WR:0.9,TE:0.7,OL:1.5,DEF:1.8,ST:0.5,COACH:1.1};
+const WEIGHT={QB:1.4,RB:1.0,WR:0.9,TE:0.7,OL:1.5,DEF:1.8,COACH:1.1};
 const N_CARDS=4,RESPINS=4;
 
 let showRatings=true,roster=[],cur=0,respinsLeft=RESPINS;
