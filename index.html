@@ -751,12 +751,6 @@ function renderHOF(){
 
 /* ---- Share ---- */
 let lastResult=null;
-function summaryText(){
-  if(!lastResult)return "";
-  const flag=lastResult.champ?" 🏆":"";
-  const stars=roster.slice(0,5).map(p=>p.n).join(", ");
-  return `Superbowl Bound — my all-time team went ${lastResult.wins}-${lastResult.losses}${flag} (${lastResult.outcome}). Headliners: ${stars}. Build yours!`;
-}
 function shareNote(t){const n=$("shareNote");if(!n)return;n.textContent=t;setTimeout(()=>{if(n.textContent===t)n.textContent="";},2400);}
 function roundRect(x,X,Y,W,H,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+W,Y,X+W,Y+H,r);x.arcTo(X+W,Y+H,X,Y+H,r);x.arcTo(X,Y+H,X,Y,r);x.arcTo(X,Y,X+W,Y,r);x.closePath();}
 /* draw the shareable result card to a canvas */
@@ -785,19 +779,17 @@ function downloadBlob(b){const url=URL.createObjectURL(b);const a=document.creat
 /* Share the result as an image (with a caption), falling back gracefully */
 function shareResult(){
   if(!lastResult)return;
-  const text=summaryText();
   renderShareCanvas().toBlob(async(blob)=>{
     let file=null;
     if(blob){try{file=new File([blob],"superbowl-bound.png",{type:"image/png"});}catch(e){file=null;}}
+    // share just the screenshot — no caption/message
     if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
-      try{await navigator.share({files:[file],text,title:"Superbowl Bound"});return;}
+      try{await navigator.share({files:[file]});return;}
       catch(e){if(e&&e.name==="AbortError")return;}
     }
-    try{if(navigator.share){await navigator.share({title:"Superbowl Bound",text});return;}}
-    catch(e){if(e&&e.name==="AbortError")return;}
-    try{await navigator.clipboard.writeText(text);}catch(e){}
-    if(blob){downloadBlob(blob);shareNote("Caption copied — image saved!");}
-    else shareNote("Caption copied to clipboard!");
+    // can't share files here: just save the screenshot
+    if(blob){downloadBlob(blob);shareNote("Image saved!");}
+    else shareNote("Image export not supported here.");
   },"image/png");
 }
 function saveImage(){
