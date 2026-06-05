@@ -46,7 +46,8 @@
   .scr.on{display:block}
   @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-  .themeToggle{position:fixed;top:calc(10px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));z-index:50;font-family:'Oswald';font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:12px;padding:9px 13px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--white);cursor:pointer}
+  .topbar{display:flex;justify-content:flex-end;margin-bottom:8px}
+  .themeToggle{font-family:'Oswald';font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:12px;padding:9px 13px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--white);cursor:pointer}
   .themeToggle:hover{border-color:var(--gold)}
 
   .brand{text-align:center;margin-bottom:6px}
@@ -119,6 +120,7 @@
   .oplayer .nm{font-family:'Oswald';font-weight:700;font-size:18px;line-height:1.1}
   .oplayer .mem{font-size:11px;color:var(--white);opacity:.72;margin-top:3px;line-height:1.3}
   .orvs{text-align:center;font-family:'Anton';color:var(--mute);font-size:13px;letter-spacing:.14em;padding:2px 0}
+  .ocard>.rsp{width:100%;margin-top:12px}
 
   .res-top{text-align:center;padding:30px 22px 22px}
   .res-top .band{font-family:'Oswald';text-transform:uppercase;letter-spacing:.2em;font-size:13px;color:var(--mute)}
@@ -184,8 +186,8 @@
 </style>
 </head>
 <body>
-<button class="themeToggle" id="themeToggle" onclick="toggleTheme()">Light Mode</button>
 <div class="wrap">
+  <div class="topbar"><button class="themeToggle" id="themeToggle" onclick="toggleTheme()">Light Mode</button></div>
 
   <section class="scr on" id="start">
     <div class="brand">
@@ -199,9 +201,9 @@
         <h3>How it works</h3>
         <ul>
           <li>Build 8 slots: QB, RB, three WRs, TE, a whole offensive line, and a whole defense.</li>
-          <li>Every round you get two cards. Each is a franchise, an era, and that team's best legend from it. Pick one.</li>
+          <li>Every round you get four cards. Each is a franchise, an era, and that team's best legend from it. Pick one.</li>
           <li>The line and defense slots draft famous units like the Hogs, the Steel Curtain, or the Legion of Boom.</li>
-          <li>Use the respin buttons to reroll just a franchise or just an era on either card. You get two team respins and two era respins per game.</li>
+          <li>Don't love a card? Hit Respin to reroll it into a brand new franchise, era, and legend. You get four respins per game.</li>
           <li>Your roster gets one blended rating run through a win curve. Only a near perfect build goes 17 and 0.</li>
         </ul>
       </div>
@@ -230,36 +232,10 @@
           <span class="r" id="roundLabel">Round 1 of 8</span>
           <span class="need">On the clock: <em id="needPos">QB</em></span>
         </div>
-        <div class="respinbar">Respins &nbsp; Team <b id="teamCount">2</b> &nbsp;&middot;&nbsp; Era <b id="eraCount">2</b></div>
+        <div class="respinbar">Respins left <b id="respinCount">4</b></div>
         <div class="note" id="note"></div>
 
-        <div class="opts">
-          <div class="ocard sel" id="cardA" onclick="selectCard('A')">
-            <div class="ocard-reels">
-              <div class="mreel"><span class="mlabel">Franchise</span><span class="mval locked" id="tA">?</span></div>
-              <div class="mreel"><span class="mlabel">Era</span><span class="mval locked" id="eA">?</span></div>
-            </div>
-            <div class="rsprow">
-              <button class="rsp" id="rspTA" onclick="respin(event,'A','team')"><span class="ic">&#8635;</span> Respin team</button>
-              <button class="rsp" id="rspEA" onclick="respin(event,'A','era')"><span class="ic">&#8635;</span> Respin era</button>
-            </div>
-            <div class="oplayer" id="pA"></div>
-          </div>
-
-          <div class="orvs">OR</div>
-
-          <div class="ocard" id="cardB" onclick="selectCard('B')">
-            <div class="ocard-reels">
-              <div class="mreel"><span class="mlabel">Franchise</span><span class="mval locked" id="tB">?</span></div>
-              <div class="mreel"><span class="mlabel">Era</span><span class="mval locked" id="eB">?</span></div>
-            </div>
-            <div class="rsprow">
-              <button class="rsp" id="rspTB" onclick="respin(event,'B','team')"><span class="ic">&#8635;</span> Respin team</button>
-              <button class="rsp" id="rspEB" onclick="respin(event,'B','era')"><span class="ic">&#8635;</span> Respin era</button>
-            </div>
-            <div class="oplayer" id="pB"></div>
-          </div>
-        </div>
+        <div class="opts" id="opts"></div>
 
         <button class="btn draft" id="btnDraft" onclick="draft()">Draft Selected</button>
       </div>
@@ -288,176 +264,297 @@
 </div>
 
 <script>
-const ERAS=["1950s","1960s","1970s","1980s","1990s","2000s","2010s","2020s"];
+const ERAS=["1950s","1970s","1980s","1990s","2000s","2010s","2020s"];
 
 const DATA={
   QB:[
-    {t:"Browns",e:"1950s",n:"Otto Graham",r:95},{t:"Colts",e:"1950s",n:"Johnny Unitas",r:91},
+    {t:"Browns",e:"1950s",n:"Otto Graham",r:96},{t:"Colts",e:"1950s",n:"Johnny Unitas",r:90},
     {t:"Lions",e:"1950s",n:"Bobby Layne",r:87},{t:"Rams",e:"1950s",n:"Norm Van Brocklin",r:86},
-    {t:"Giants",e:"1950s",n:"Charlie Conerly",r:81},
-    {t:"Colts",e:"1960s",n:"Johnny Unitas",r:94},{t:"Packers",e:"1960s",n:"Bart Starr",r:90},
-    {t:"Jets",e:"1960s",n:"Joe Namath",r:88},{t:"Chiefs",e:"1960s",n:"Len Dawson",r:88},
+    {t:"Giants",e:"1950s",n:"Charlie Conerly",r:81},{t:"49ers",e:"1950s",n:"Y.A. Tittle",r:84},
+    {t:"Colts",e:"1960s",n:"Johnny Unitas",r:96},{t:"Packers",e:"1960s",n:"Bart Starr",r:91},
+    {t:"Jets",e:"1960s",n:"Joe Namath",r:89},{t:"Chiefs",e:"1960s",n:"Len Dawson",r:88},
     {t:"Vikings",e:"1960s",n:"Fran Tarkenton",r:86},{t:"Cowboys",e:"1960s",n:"Don Meredith",r:83},
-    {t:"Raiders",e:"1960s",n:"Daryle Lamonica",r:83},
+    {t:"Raiders",e:"1960s",n:"Daryle Lamonica",r:84},{t:"Redskins",e:"1960s",n:"Sonny Jurgensen",r:89},
+    {t:"Giants",e:"1960s",n:"Y.A. Tittle",r:88},{t:"Chargers",e:"1960s",n:"John Hadl",r:83},
     {t:"Cowboys",e:"1970s",n:"Roger Staubach",r:92},{t:"Steelers",e:"1970s",n:"Terry Bradshaw",r:90},
-    {t:"Vikings",e:"1970s",n:"Fran Tarkenton",r:89},{t:"Raiders",e:"1970s",n:"Ken Stabler",r:88},
-    {t:"Dolphins",e:"1970s",n:"Bob Griese",r:87},{t:"Bengals",e:"1970s",n:"Ken Anderson",r:86},
-    {t:"49ers",e:"1980s",n:"Joe Montana",r:96},{t:"Dolphins",e:"1980s",n:"Dan Marino",r:95},
-    {t:"Broncos",e:"1980s",n:"John Elway",r:90},{t:"Chargers",e:"1980s",n:"Dan Fouts",r:90},
-    {t:"Bills",e:"1980s",n:"Jim Kelly",r:87},{t:"Bengals",e:"1980s",n:"Boomer Esiason",r:85},
-    {t:"49ers",e:"1990s",n:"Steve Young",r:94},{t:"Packers",e:"1990s",n:"Brett Favre",r:94},
-    {t:"Broncos",e:"1990s",n:"John Elway",r:92},{t:"Dolphins",e:"1990s",n:"Dan Marino",r:92},
+    {t:"Vikings",e:"1970s",n:"Fran Tarkenton",r:90},{t:"Raiders",e:"1970s",n:"Ken Stabler",r:89},
+    {t:"Dolphins",e:"1970s",n:"Bob Griese",r:88},{t:"Bengals",e:"1970s",n:"Ken Anderson",r:88},
+    {t:"Chargers",e:"1970s",n:"Dan Fouts",r:85},{t:"Rams",e:"1970s",n:"Roman Gabriel",r:82},
+    {t:"49ers",e:"1980s",n:"Joe Montana",r:99},{t:"Dolphins",e:"1980s",n:"Dan Marino",r:96},
+    {t:"Broncos",e:"1980s",n:"John Elway",r:90},{t:"Chargers",e:"1980s",n:"Dan Fouts",r:91},
+    {t:"Bills",e:"1980s",n:"Jim Kelly",r:87},{t:"Bengals",e:"1980s",n:"Boomer Esiason",r:86},
+    {t:"Oilers",e:"1980s",n:"Warren Moon",r:88},{t:"Eagles",e:"1980s",n:"Randall Cunningham",r:86},
+    {t:"Redskins",e:"1980s",n:"Joe Theismann",r:85},
+    {t:"49ers",e:"1990s",n:"Steve Young",r:95},{t:"Packers",e:"1990s",n:"Brett Favre",r:95},
+    {t:"Broncos",e:"1990s",n:"John Elway",r:93},{t:"Dolphins",e:"1990s",n:"Dan Marino",r:93},
     {t:"Cowboys",e:"1990s",n:"Troy Aikman",r:90},{t:"Bills",e:"1990s",n:"Jim Kelly",r:89},
-    {t:"Colts",e:"2000s",n:"Peyton Manning",r:96},{t:"Patriots",e:"2000s",n:"Tom Brady",r:95},
-    {t:"Saints",e:"2000s",n:"Drew Brees",r:92},{t:"Chargers",e:"2000s",n:"Philip Rivers",r:88},
-    {t:"Steelers",e:"2000s",n:"Ben Roethlisberger",r:88},{t:"Eagles",e:"2000s",n:"Donovan McNabb",r:86},
-    {t:"Patriots",e:"2010s",n:"Tom Brady",r:97},{t:"Packers",e:"2010s",n:"Aaron Rodgers",r:96},
-    {t:"Chiefs",e:"2010s",n:"Patrick Mahomes",r:95},{t:"Saints",e:"2010s",n:"Drew Brees",r:93},
-    {t:"Broncos",e:"2010s",n:"Peyton Manning",r:92},{t:"Falcons",e:"2010s",n:"Matt Ryan",r:89},
-    {t:"Seahawks",e:"2010s",n:"Russell Wilson",r:89},
-    {t:"Chiefs",e:"2020s",n:"Patrick Mahomes",r:98},{t:"Bills",e:"2020s",n:"Josh Allen",r:93},
-    {t:"Ravens",e:"2020s",n:"Lamar Jackson",r:92},{t:"Bengals",e:"2020s",n:"Joe Burrow",r:91},
-    {t:"Eagles",e:"2020s",n:"Jalen Hurts",r:89},{t:"Chargers",e:"2020s",n:"Justin Herbert",r:89}
+    {t:"Vikings",e:"1990s",n:"Warren Moon",r:90},{t:"Patriots",e:"1990s",n:"Drew Bledsoe",r:85},
+    {t:"Colts",e:"2000s",n:"Peyton Manning",r:97},{t:"Patriots",e:"2000s",n:"Tom Brady",r:95},
+    {t:"Saints",e:"2000s",n:"Drew Brees",r:93},{t:"Rams",e:"2000s",n:"Kurt Warner",r:93},
+    {t:"Chargers",e:"2000s",n:"Philip Rivers",r:88},{t:"Steelers",e:"2000s",n:"Ben Roethlisberger",r:88},
+    {t:"Eagles",e:"2000s",n:"Donovan McNabb",r:87},{t:"Titans",e:"2000s",n:"Steve McNair",r:86},
+    {t:"Falcons",e:"2000s",n:"Michael Vick",r:85},
+    {t:"Patriots",e:"2010s",n:"Tom Brady",r:99},{t:"Packers",e:"2010s",n:"Aaron Rodgers",r:98},
+    {t:"Broncos",e:"2010s",n:"Peyton Manning",r:95},{t:"Chiefs",e:"2010s",n:"Patrick Mahomes",r:96},
+    {t:"Saints",e:"2010s",n:"Drew Brees",r:94},{t:"Falcons",e:"2010s",n:"Matt Ryan",r:90},
+    {t:"Seahawks",e:"2010s",n:"Russell Wilson",r:90},{t:"Panthers",e:"2010s",n:"Cam Newton",r:89},
+    {t:"Chargers",e:"2010s",n:"Philip Rivers",r:88},{t:"Steelers",e:"2010s",n:"Ben Roethlisberger",r:88},
+    {t:"Chiefs",e:"2020s",n:"Patrick Mahomes",r:99},{t:"Buccaneers",e:"2020s",n:"Tom Brady",r:95},
+    {t:"Bills",e:"2020s",n:"Josh Allen",r:94},{t:"Ravens",e:"2020s",n:"Lamar Jackson",r:94},
+    {t:"Packers",e:"2020s",n:"Aaron Rodgers",r:93},{t:"Bengals",e:"2020s",n:"Joe Burrow",r:92},
+    {t:"Eagles",e:"2020s",n:"Jalen Hurts",r:90},{t:"Chargers",e:"2020s",n:"Justin Herbert",r:89},
+    {t:"Texans",e:"2020s",n:"C.J. Stroud",r:86},{t:"Lions",e:"2020s",n:"Jared Goff",r:87},
+    {t:"Oilers",e:"1970s",n:"Dan Pastorini",r:80},{t:"Cardinals",e:"1970s",n:"Jim Hart",r:81},
+    {t:"Browns",e:"1980s",n:"Bernie Kosar",r:84},{t:"Seahawks",e:"1980s",n:"Dave Krieg",r:82},
+    {t:"Giants",e:"1980s",n:"Phil Simms",r:84},{t:"Cardinals",e:"1980s",n:"Neil Lomax",r:81},
+    {t:"Chiefs",e:"1990s",n:"Joe Montana",r:89},{t:"Jaguars",e:"1990s",n:"Mark Brunell",r:85},
+    {t:"Giants",e:"2000s",n:"Eli Manning",r:87},{t:"Packers",e:"2000s",n:"Aaron Rodgers",r:88},
+    {t:"Cardinals",e:"2000s",n:"Kurt Warner",r:89},{t:"Bengals",e:"2000s",n:"Carson Palmer",r:85},
+    {t:"Cowboys",e:"2010s",n:"Dak Prescott",r:88},{t:"Lions",e:"2010s",n:"Matthew Stafford",r:87},
+    {t:"Texans",e:"2010s",n:"Deshaun Watson",r:87},{t:"Raiders",e:"2010s",n:"Derek Carr",r:85},
+    {t:"Dolphins",e:"2020s",n:"Tua Tagovailoa",r:87},{t:"49ers",e:"2020s",n:"Brock Purdy",r:86},
+    {t:"Commanders",e:"2020s",n:"Jayden Daniels",r:86},{t:"Cowboys",e:"2020s",n:"Dak Prescott",r:88},
+    {t:"Jaguars",e:"2020s",n:"Trevor Lawrence",r:85}
   ],
   RB:[
-    {t:"Browns",e:"1950s",n:"Jim Brown",r:96},{t:"49ers",e:"1950s",n:"Joe Perry",r:86},
-    {t:"Giants",e:"1950s",n:"Frank Gifford",r:85},{t:"49ers",e:"1950s",n:"Hugh McElhenny",r:84},
-    {t:"Browns",e:"1960s",n:"Jim Brown",r:98},{t:"Bears",e:"1960s",n:"Gale Sayers",r:92},
+    {t:"Browns",e:"1950s",n:"Jim Brown",r:96},{t:"49ers",e:"1950s",n:"Joe Perry",r:87},
+    {t:"Giants",e:"1950s",n:"Frank Gifford",r:85},{t:"49ers",e:"1950s",n:"Hugh McElhenny",r:85},
+    {t:"Lions",e:"1950s",n:"Doak Walker",r:84},{t:"Eagles",e:"1950s",n:"Steve Van Buren",r:87},
+    {t:"Browns",e:"1960s",n:"Jim Brown",r:99},{t:"Bears",e:"1960s",n:"Gale Sayers",r:93},
     {t:"Packers",e:"1960s",n:"Jim Taylor",r:88},{t:"Browns",e:"1960s",n:"Leroy Kelly",r:86},
-    {t:"Packers",e:"1960s",n:"Paul Hornung",r:85},
-    {t:"Bills",e:"1970s",n:"O.J. Simpson",r:94},{t:"Oilers",e:"1970s",n:"Earl Campbell",r:92},
-    {t:"Steelers",e:"1970s",n:"Franco Harris",r:88},{t:"Dolphins",e:"1970s",n:"Larry Csonka",r:87},
-    {t:"Cowboys",e:"1970s",n:"Tony Dorsett",r:88},{t:"Vikings",e:"1970s",n:"Chuck Foreman",r:84},
-    {t:"Bears",e:"1980s",n:"Walter Payton",r:96},{t:"Rams",e:"1980s",n:"Eric Dickerson",r:94},
-    {t:"Raiders",e:"1980s",n:"Marcus Allen",r:89},{t:"Cowboys",e:"1980s",n:"Tony Dorsett",r:88},
-    {t:"Redskins",e:"1980s",n:"John Riggins",r:86},
-    {t:"Lions",e:"1990s",n:"Barry Sanders",r:97},{t:"Cowboys",e:"1990s",n:"Emmitt Smith",r:94},
-    {t:"Broncos",e:"1990s",n:"Terrell Davis",r:90},{t:"Bills",e:"1990s",n:"Thurman Thomas",r:89},
-    {t:"Steelers",e:"1990s",n:"Jerome Bettis",r:86},
-    {t:"Chargers",e:"2000s",n:"LaDainian Tomlinson",r:96},{t:"Rams",e:"2000s",n:"Marshall Faulk",r:95},
-    {t:"Vikings",e:"2000s",n:"Adrian Peterson",r:92},{t:"Chiefs",e:"2000s",n:"Priest Holmes",r:89},
-    {t:"Colts",e:"2000s",n:"Edgerrin James",r:88},{t:"Seahawks",e:"2000s",n:"Shaun Alexander",r:88},
-    {t:"Vikings",e:"2010s",n:"Adrian Peterson",r:95},{t:"Steelers",e:"2010s",n:"Le'Veon Bell",r:90},
-    {t:"Cowboys",e:"2010s",n:"Ezekiel Elliott",r:89},{t:"Rams",e:"2010s",n:"Todd Gurley",r:88},
-    {t:"Saints",e:"2010s",n:"Alvin Kamara",r:87},
-    {t:"Titans",e:"2020s",n:"Derrick Henry",r:93},{t:"49ers",e:"2020s",n:"Christian McCaffrey",r:93},
-    {t:"Eagles",e:"2020s",n:"Saquon Barkley",r:92},{t:"Colts",e:"2020s",n:"Jonathan Taylor",r:88},
-    {t:"Browns",e:"2020s",n:"Nick Chubb",r:88}
+    {t:"Packers",e:"1960s",n:"Paul Hornung",r:85},{t:"Colts",e:"1960s",n:"Lenny Moore",r:88},
+    {t:"Bills",e:"1970s",n:"O.J. Simpson",r:94},{t:"Oilers",e:"1970s",n:"Earl Campbell",r:93},
+    {t:"Steelers",e:"1970s",n:"Franco Harris",r:88},{t:"Dolphins",e:"1970s",n:"Larry Csonka",r:88},
+    {t:"Cowboys",e:"1970s",n:"Tony Dorsett",r:88},{t:"Vikings",e:"1970s",n:"Chuck Foreman",r:85},
+    {t:"Bears",e:"1970s",n:"Walter Payton",r:91},{t:"Redskins",e:"1970s",n:"Larry Brown",r:84},
+    {t:"Bears",e:"1980s",n:"Walter Payton",r:97},{t:"Rams",e:"1980s",n:"Eric Dickerson",r:95},
+    {t:"Raiders",e:"1980s",n:"Marcus Allen",r:90},{t:"Cowboys",e:"1980s",n:"Tony Dorsett",r:89},
+    {t:"Redskins",e:"1980s",n:"John Riggins",r:86},{t:"Lions",e:"1980s",n:"Billy Sims",r:84},
+    {t:"Giants",e:"1980s",n:"Joe Morris",r:82},
+    {t:"Lions",e:"1990s",n:"Barry Sanders",r:99},{t:"Cowboys",e:"1990s",n:"Emmitt Smith",r:95},
+    {t:"Broncos",e:"1990s",n:"Terrell Davis",r:91},{t:"Bills",e:"1990s",n:"Thurman Thomas",r:90},
+    {t:"Steelers",e:"1990s",n:"Jerome Bettis",r:86},{t:"49ers",e:"1990s",n:"Ricky Watters",r:85},
+    {t:"Falcons",e:"1990s",n:"Jamal Anderson",r:84},
+    {t:"Chargers",e:"2000s",n:"LaDainian Tomlinson",r:97},{t:"Rams",e:"2000s",n:"Marshall Faulk",r:96},
+    {t:"Vikings",e:"2000s",n:"Adrian Peterson",r:92},{t:"Chiefs",e:"2000s",n:"Priest Holmes",r:90},
+    {t:"Seahawks",e:"2000s",n:"Shaun Alexander",r:89},{t:"Colts",e:"2000s",n:"Edgerrin James",r:88},
+    {t:"Jaguars",e:"2000s",n:"Fred Taylor",r:85},{t:"Chiefs",e:"2000s",n:"Larry Johnson",r:86},
+    {t:"Vikings",e:"2010s",n:"Adrian Peterson",r:96},{t:"Steelers",e:"2010s",n:"Le'Veon Bell",r:91},
+    {t:"Chiefs",e:"2010s",n:"Jamaal Charles",r:89},{t:"Cowboys",e:"2010s",n:"Ezekiel Elliott",r:89},
+    {t:"Rams",e:"2010s",n:"Todd Gurley",r:89},{t:"Eagles",e:"2010s",n:"LeSean McCoy",r:87},
+    {t:"Saints",e:"2010s",n:"Alvin Kamara",r:87},{t:"Cardinals",e:"2010s",n:"David Johnson",r:86},
+    {t:"Titans",e:"2020s",n:"Derrick Henry",r:94},{t:"49ers",e:"2020s",n:"Christian McCaffrey",r:94},
+    {t:"Eagles",e:"2020s",n:"Saquon Barkley",r:93},{t:"Ravens",e:"2020s",n:"Derrick Henry",r:92},
+    {t:"Colts",e:"2020s",n:"Jonathan Taylor",r:89},{t:"Browns",e:"2020s",n:"Nick Chubb",r:88},
+    {t:"Lions",e:"2020s",n:"Jahmyr Gibbs",r:87},{t:"Raiders",e:"2020s",n:"Josh Jacobs",r:86},
+    {t:"Falcons",e:"2020s",n:"Bijan Robinson",r:86},
+    {t:"Cardinals",e:"1950s",n:"Ollie Matson",r:85},
+    {t:"Rams",e:"1970s",n:"Lawrence McCutcheon",r:82},{t:"Cardinals",e:"1970s",n:"Terry Metcalf",r:82},
+    {t:"Oilers",e:"1980s",n:"Earl Campbell",r:88},{t:"Saints",e:"1980s",n:"George Rogers",r:82},
+    {t:"Falcons",e:"1980s",n:"Gerald Riggs",r:83},{t:"Seahawks",e:"1980s",n:"Curt Warner",r:83},
+    {t:"Colts",e:"1990s",n:"Marshall Faulk",r:90},{t:"Patriots",e:"1990s",n:"Curtis Martin",r:88},
+    {t:"Chiefs",e:"1990s",n:"Marcus Allen",r:84},{t:"Jaguars",e:"1990s",n:"Fred Taylor",r:85},
+    {t:"Titans",e:"2000s",n:"Chris Johnson",r:89},{t:"Ravens",e:"2000s",n:"Jamal Lewis",r:86},
+    {t:"Giants",e:"2000s",n:"Tiki Barber",r:86},{t:"Saints",e:"2000s",n:"Deuce McAllister",r:83},
+    {t:"Seahawks",e:"2010s",n:"Marshawn Lynch",r:91},{t:"Panthers",e:"2010s",n:"Christian McCaffrey",r:91},
+    {t:"Giants",e:"2010s",n:"Saquon Barkley",r:90},{t:"Titans",e:"2010s",n:"Derrick Henry",r:90},
+    {t:"Packers",e:"2020s",n:"Aaron Jones",r:85},{t:"Chargers",e:"2020s",n:"Austin Ekeler",r:85},
+    {t:"Bengals",e:"2020s",n:"Joe Mixon",r:84}
   ],
   WR:[
     {t:"Rams",e:"1950s",n:"Elroy Hirsch",r:86},{t:"Colts",e:"1950s",n:"Raymond Berry",r:85},
     {t:"Rams",e:"1950s",n:"Tom Fears",r:83},{t:"Eagles",e:"1950s",n:"Pete Pihos",r:84},
-    {t:"Chargers",e:"1960s",n:"Lance Alworth",r:92},{t:"Cowboys",e:"1960s",n:"Bob Hayes",r:89},
+    {t:"Browns",e:"1950s",n:"Dante Lavelli",r:84},{t:"Browns",e:"1950s",n:"Mac Speedie",r:82},
+    {t:"Chargers",e:"1960s",n:"Lance Alworth",r:93},{t:"Cowboys",e:"1960s",n:"Bob Hayes",r:90},
     {t:"Browns",e:"1960s",n:"Paul Warfield",r:89},{t:"Colts",e:"1960s",n:"Raymond Berry",r:88},
-    {t:"Chiefs",e:"1960s",n:"Otis Taylor",r:84},
+    {t:"Redskins",e:"1960s",n:"Charley Taylor",r:87},{t:"Chiefs",e:"1960s",n:"Otis Taylor",r:85},
+    {t:"Oilers",e:"1960s",n:"Charlie Hennigan",r:83},
     {t:"Dolphins",e:"1970s",n:"Paul Warfield",r:88},{t:"Steelers",e:"1970s",n:"Lynn Swann",r:87},
     {t:"Steelers",e:"1970s",n:"John Stallworth",r:87},{t:"Raiders",e:"1970s",n:"Cliff Branch",r:86},
-    {t:"Bengals",e:"1970s",n:"Isaac Curtis",r:82},
-    {t:"Seahawks",e:"1980s",n:"Steve Largent",r:90},{t:"49ers",e:"1980s",n:"Jerry Rice",r:94},
-    {t:"Redskins",e:"1980s",n:"Art Monk",r:88},{t:"Dolphins",e:"1980s",n:"Mark Clayton",r:86},
-    {t:"Redskins",e:"1980s",n:"Gary Clark",r:84},{t:"Bengals",e:"1980s",n:"Cris Collinsworth",r:82},
-    {t:"49ers",e:"1990s",n:"Jerry Rice",r:98},{t:"Vikings",e:"1990s",n:"Randy Moss",r:94},
-    {t:"Cowboys",e:"1990s",n:"Michael Irvin",r:90},{t:"Vikings",e:"1990s",n:"Cris Carter",r:90},
+    {t:"Chargers",e:"1970s",n:"Charlie Joiner",r:85},{t:"Bengals",e:"1970s",n:"Isaac Curtis",r:82},
+    {t:"Cardinals",e:"1970s",n:"Mel Gray",r:82},
+    {t:"49ers",e:"1980s",n:"Jerry Rice",r:94},{t:"Seahawks",e:"1980s",n:"Steve Largent",r:91},
+    {t:"Redskins",e:"1980s",n:"Art Monk",r:89},{t:"Dolphins",e:"1980s",n:"Mark Clayton",r:86},
+    {t:"Dolphins",e:"1980s",n:"Mark Duper",r:85},{t:"Redskins",e:"1980s",n:"Gary Clark",r:84},
+    {t:"Cardinals",e:"1980s",n:"Roy Green",r:84},{t:"Bengals",e:"1980s",n:"Cris Collinsworth",r:83},
+    {t:"49ers",e:"1990s",n:"Jerry Rice",r:99},{t:"Vikings",e:"1990s",n:"Randy Moss",r:94},
+    {t:"Vikings",e:"1990s",n:"Cris Carter",r:91},{t:"Cowboys",e:"1990s",n:"Michael Irvin",r:90},
     {t:"Packers",e:"1990s",n:"Sterling Sharpe",r:88},{t:"Lions",e:"1990s",n:"Herman Moore",r:87},
-    {t:"Vikings",e:"2000s",n:"Randy Moss",r:95},{t:"Colts",e:"2000s",n:"Marvin Harrison",r:94},
-    {t:"Cardinals",e:"2000s",n:"Larry Fitzgerald",r:93},{t:"Cowboys",e:"2000s",n:"Terrell Owens",r:91},
-    {t:"Texans",e:"2000s",n:"Andre Johnson",r:90},{t:"Colts",e:"2000s",n:"Reggie Wayne",r:89},
-    {t:"Bengals",e:"2000s",n:"Chad Johnson",r:88},
-    {t:"Lions",e:"2010s",n:"Calvin Johnson",r:96},{t:"Falcons",e:"2010s",n:"Julio Jones",r:95},
-    {t:"Steelers",e:"2010s",n:"Antonio Brown",r:94},{t:"Texans",e:"2010s",n:"DeAndre Hopkins",r:92},
+    {t:"Broncos",e:"1990s",n:"Rod Smith",r:85},
+    {t:"Patriots",e:"2000s",n:"Randy Moss",r:97},{t:"Vikings",e:"2000s",n:"Randy Moss",r:95},
+    {t:"Colts",e:"2000s",n:"Marvin Harrison",r:95},{t:"Cardinals",e:"2000s",n:"Larry Fitzgerald",r:93},
+    {t:"Cowboys",e:"2000s",n:"Terrell Owens",r:92},{t:"Texans",e:"2000s",n:"Andre Johnson",r:91},
+    {t:"Panthers",e:"2000s",n:"Steve Smith",r:90},{t:"Colts",e:"2000s",n:"Reggie Wayne",r:89},
+    {t:"Bengals",e:"2000s",n:"Chad Johnson",r:89},{t:"Steelers",e:"2000s",n:"Hines Ward",r:86},
+    {t:"Lions",e:"2010s",n:"Calvin Johnson",r:97},{t:"Falcons",e:"2010s",n:"Julio Jones",r:95},
+    {t:"Steelers",e:"2010s",n:"Antonio Brown",r:95},{t:"Texans",e:"2010s",n:"DeAndre Hopkins",r:92},
+    {t:"Saints",e:"2010s",n:"Michael Thomas",r:91},{t:"Cardinals",e:"2010s",n:"Larry Fitzgerald",r:90},
     {t:"Bengals",e:"2010s",n:"A.J. Green",r:90},{t:"Giants",e:"2010s",n:"Odell Beckham Jr.",r:89},
-    {t:"Vikings",e:"2020s",n:"Justin Jefferson",r:96},{t:"Dolphins",e:"2020s",n:"Tyreek Hill",r:95},
-    {t:"Bengals",e:"2020s",n:"Ja'Marr Chase",r:94},{t:"Raiders",e:"2020s",n:"Davante Adams",r:93},
-    {t:"Eagles",e:"2020s",n:"A.J. Brown",r:91},{t:"Cowboys",e:"2020s",n:"CeeDee Lamb",r:91},
-    {t:"Lions",e:"2020s",n:"Amon-Ra St. Brown",r:90}
+    {t:"Packers",e:"2010s",n:"Jordy Nelson",r:88},{t:"Buccaneers",e:"2010s",n:"Mike Evans",r:88},
+    {t:"Vikings",e:"2020s",n:"Justin Jefferson",r:97},{t:"Dolphins",e:"2020s",n:"Tyreek Hill",r:96},
+    {t:"Rams",e:"2020s",n:"Cooper Kupp",r:93},{t:"Bengals",e:"2020s",n:"Ja'Marr Chase",r:95},
+    {t:"Raiders",e:"2020s",n:"Davante Adams",r:94},{t:"Bills",e:"2020s",n:"Stefon Diggs",r:91},
+    {t:"Eagles",e:"2020s",n:"A.J. Brown",r:92},{t:"Cowboys",e:"2020s",n:"CeeDee Lamb",r:91},
+    {t:"Lions",e:"2020s",n:"Amon-Ra St. Brown",r:91},{t:"Seahawks",e:"2020s",n:"DK Metcalf",r:88},
+    {t:"Bears",e:"1950s",n:"Harlon Hill",r:82},
+    {t:"Cowboys",e:"1970s",n:"Drew Pearson",r:86},{t:"Patriots",e:"1970s",n:"Stanley Morgan",r:83},
+    {t:"Bills",e:"1980s",n:"Andre Reed",r:87},{t:"49ers",e:"1980s",n:"Dwight Clark",r:84},
+    {t:"Rams",e:"1980s",n:"Henry Ellard",r:85},{t:"Vikings",e:"1980s",n:"Anthony Carter",r:83},
+    {t:"49ers",e:"1990s",n:"Terrell Owens",r:89},{t:"Jaguars",e:"1990s",n:"Jimmy Smith",r:86},
+    {t:"Cardinals",e:"1990s",n:"Rob Moore",r:83},
+    {t:"Cardinals",e:"2000s",n:"Anquan Boldin",r:87},{t:"Broncos",e:"2000s",n:"Brandon Marshall",r:86},
+    {t:"Giants",e:"2000s",n:"Plaxico Burress",r:84},{t:"Saints",e:"2000s",n:"Marques Colston",r:84},
+    {t:"Chiefs",e:"2010s",n:"Tyreek Hill",r:92},{t:"Cowboys",e:"2010s",n:"Dez Bryant",r:88},
+    {t:"Broncos",e:"2010s",n:"Demaryius Thomas",r:88},
+    {t:"49ers",e:"2020s",n:"Deebo Samuel",r:89},{t:"Dolphins",e:"2020s",n:"Jaylen Waddle",r:88},
+    {t:"Bengals",e:"2020s",n:"Tee Higgins",r:88},{t:"Jets",e:"2020s",n:"Garrett Wilson",r:87},
+    {t:"Texans",e:"2020s",n:"Nico Collins",r:87}
   ],
   TE:[
     {t:"Eagles",e:"1950s",n:"Pete Pihos",r:82},{t:"Giants",e:"1950s",n:"Bob Schnelker",r:76},
-    {t:"Bears",e:"1960s",n:"Mike Ditka",r:90},{t:"Packers",e:"1960s",n:"Ron Kramer",r:80},
-    {t:"Chiefs",e:"1960s",n:"Fred Arbanas",r:80},
-    {t:"Chargers",e:"1970s",n:"Kellen Winslow",r:90},{t:"Raiders",e:"1970s",n:"Dave Casper",r:88},
-    {t:"Bengals",e:"1970s",n:"Bob Trumpy",r:82},
-    {t:"Chargers",e:"1980s",n:"Kellen Winslow",r:92},{t:"Browns",e:"1980s",n:"Ozzie Newsome",r:89},
-    {t:"Raiders",e:"1980s",n:"Todd Christensen",r:85},{t:"Giants",e:"1980s",n:"Mark Bavaro",r:85},
-    {t:"Broncos",e:"1990s",n:"Shannon Sharpe",r:90},{t:"Patriots",e:"1990s",n:"Ben Coates",r:86},
-    {t:"Cowboys",e:"1990s",n:"Jay Novacek",r:84},{t:"49ers",e:"1990s",n:"Brent Jones",r:84},
-    {t:"Chiefs",e:"2000s",n:"Tony Gonzalez",r:95},{t:"Chargers",e:"2000s",n:"Antonio Gates",r:93},
-    {t:"Cowboys",e:"2000s",n:"Jason Witten",r:90},{t:"Ravens",e:"2000s",n:"Todd Heap",r:84},
-    {t:"Patriots",e:"2010s",n:"Rob Gronkowski",r:96},{t:"Chiefs",e:"2010s",n:"Travis Kelce",r:92},
-    {t:"Saints",e:"2010s",n:"Jimmy Graham",r:89},{t:"49ers",e:"2010s",n:"George Kittle",r:90},
-    {t:"Chiefs",e:"2020s",n:"Travis Kelce",r:95},{t:"49ers",e:"2020s",n:"George Kittle",r:91},
-    {t:"Ravens",e:"2020s",n:"Mark Andrews",r:90},{t:"Falcons",e:"2020s",n:"Kyle Pitts",r:85}
+    {t:"Bears",e:"1960s",n:"Mike Ditka",r:91},{t:"Colts",e:"1960s",n:"John Mackey",r:90},
+    {t:"Packers",e:"1960s",n:"Ron Kramer",r:81},{t:"Chiefs",e:"1960s",n:"Fred Arbanas",r:81},
+    {t:"Chargers",e:"1970s",n:"Kellen Winslow",r:90},{t:"Raiders",e:"1970s",n:"Dave Casper",r:89},
+    {t:"Colts",e:"1970s",n:"John Mackey",r:88},{t:"Bengals",e:"1970s",n:"Bob Trumpy",r:82},
+    {t:"Chargers",e:"1980s",n:"Kellen Winslow",r:93},{t:"Browns",e:"1980s",n:"Ozzie Newsome",r:90},
+    {t:"Giants",e:"1980s",n:"Mark Bavaro",r:86},{t:"Raiders",e:"1980s",n:"Todd Christensen",r:85},
+    {t:"Eagles",e:"1980s",n:"Keith Jackson",r:86},
+    {t:"Broncos",e:"1990s",n:"Shannon Sharpe",r:91},{t:"Chiefs",e:"1990s",n:"Tony Gonzalez",r:90},
+    {t:"Patriots",e:"1990s",n:"Ben Coates",r:87},{t:"Cowboys",e:"1990s",n:"Jay Novacek",r:84},
+    {t:"49ers",e:"1990s",n:"Brent Jones",r:84},
+    {t:"Chiefs",e:"2000s",n:"Tony Gonzalez",r:96},{t:"Chargers",e:"2000s",n:"Antonio Gates",r:93},
+    {t:"Cowboys",e:"2000s",n:"Jason Witten",r:91},{t:"Colts",e:"2000s",n:"Dallas Clark",r:86},
+    {t:"Ravens",e:"2000s",n:"Todd Heap",r:84},{t:"Giants",e:"2000s",n:"Jeremy Shockey",r:84},
+    {t:"Patriots",e:"2010s",n:"Rob Gronkowski",r:97},{t:"Chiefs",e:"2010s",n:"Travis Kelce",r:93},
+    {t:"49ers",e:"2010s",n:"George Kittle",r:90},{t:"Saints",e:"2010s",n:"Jimmy Graham",r:89},
+    {t:"Panthers",e:"2010s",n:"Greg Olsen",r:87},{t:"Eagles",e:"2010s",n:"Zach Ertz",r:87},
+    {t:"Chiefs",e:"2020s",n:"Travis Kelce",r:96},{t:"49ers",e:"2020s",n:"George Kittle",r:92},
+    {t:"Ravens",e:"2020s",n:"Mark Andrews",r:90},{t:"Raiders",e:"2020s",n:"Darren Waller",r:87},
+    {t:"Lions",e:"2020s",n:"Sam LaPorta",r:86},{t:"Falcons",e:"2020s",n:"Kyle Pitts",r:85},
+    {t:"Patriots",e:"1970s",n:"Russ Francis",r:84},
+    {t:"Vikings",e:"1980s",n:"Steve Jordan",r:84},{t:"Bengals",e:"1980s",n:"Rodney Holman",r:80},
+    {t:"Dolphins",e:"1990s",n:"Keith Jackson",r:85},{t:"Packers",e:"1990s",n:"Mark Chmura",r:82},
+    {t:"Steelers",e:"2000s",n:"Heath Miller",r:84},{t:"49ers",e:"2000s",n:"Vernon Davis",r:85},
+    {t:"Chargers",e:"2010s",n:"Antonio Gates",r:87},{t:"Raiders",e:"2010s",n:"Darren Waller",r:86},
+    {t:"Vikings",e:"2020s",n:"T.J. Hockenson",r:86},{t:"Eagles",e:"2020s",n:"Dallas Goedert",r:85}
   ],
   OL:[
     {t:"Browns",e:"1950s",n:"The Cleveland Wall",r:90,m:"Gatski, McCormack, Groza, Gibron, Hickerson"},
     {t:"Giants",e:"1950s",n:"Giants Front",r:83,m:"Roosevelt Brown, Jack Stroud, Ray Wietecha"},
-    {t:"Packers",e:"1960s",n:"Lombardi's Line",r:93,m:"Forrest Gregg, Jerry Kramer, Jim Ringo, Fuzzy Thurston"},
-    {t:"Colts",e:"1960s",n:"Big Jim's Line",r:88,m:"Jim Parker, Bob Vogel, Dan Sullivan"},
+    {t:"Lions",e:"1950s",n:"Motor City Wall",r:83,m:"Lou Creekmur, Charlie Ane, Harley Sewell"},
+    {t:"Packers",e:"1960s",n:"Lombardi's Line",r:94,m:"Forrest Gregg, Jerry Kramer, Jim Ringo, Fuzzy Thurston"},
+    {t:"Colts",e:"1960s",n:"Big Jim's Line",r:89,m:"Jim Parker, Bob Vogel, Dan Sullivan"},
     {t:"Browns",e:"1960s",n:"Hickerson's Hogs",r:88,m:"Gene Hickerson, Dick Schafrath, Monte Clark"},
-    {t:"Raiders",e:"1970s",n:"Silver and Black Wall",r:92,m:"Gene Upshaw, Art Shell, Jim Otto, Dave Dalby"},
-    {t:"Dolphins",e:"1970s",n:"The Mover Line",r:90,m:"Larry Little, Jim Langer, Bob Kuechenberg"},
-    {t:"Bills",e:"1970s",n:"The Electric Company",r:88,m:"Reggie McKenzie, Joe DeLamielleure, Dave Foley"},
+    {t:"Chiefs",e:"1960s",n:"Stram's Wall",r:86,m:"Ed Budde, Jim Tyrer, Dave Hill"},
+    {t:"Raiders",e:"1970s",n:"Silver and Black Wall",r:93,m:"Gene Upshaw, Art Shell, Jim Otto, Dave Dalby"},
+    {t:"Dolphins",e:"1970s",n:"The Mover Line",r:91,m:"Larry Little, Jim Langer, Bob Kuechenberg"},
+    {t:"Bills",e:"1970s",n:"The Electric Company",r:89,m:"Reggie McKenzie, Joe DeLamielleure, Dave Foley"},
     {t:"Cowboys",e:"1970s",n:"Doomsday Front",r:86,m:"Rayfield Wright, John Niland, Blaine Nye"},
-    {t:"Redskins",e:"1980s",n:"The Hogs",r:95,m:"Joe Jacoby, Russ Grimm, Jeff Bostic, Mark May, George Starke"},
-    {t:"Bengals",e:"1980s",n:"Munoz Wall",r:90,m:"Anthony Munoz, Max Montoya, Dave Lapham"},
-    {t:"Bears",e:"1980s",n:"The Grabowskis",r:86,m:"Jimbo Covert, Jay Hilgenberg, Mark Bortz"},
-    {t:"Cowboys",e:"1990s",n:"Great Wall of Dallas",r:95,m:"Larry Allen, Erik Williams, Mark Stepnoski, Nate Newton"},
-    {t:"Broncos",e:"1990s",n:"Zone Crushers",r:88,m:"Gary Zimmerman, Mark Schlereth, Tom Nalen"},
+    {t:"Steelers",e:"1970s",n:"Steel Front",r:87,m:"Mike Webster, Jon Kolb, Sam Davis"},
+    {t:"Redskins",e:"1980s",n:"The Hogs",r:96,m:"Joe Jacoby, Russ Grimm, Jeff Bostic, Mark May, George Starke"},
+    {t:"Bengals",e:"1980s",n:"Munoz Wall",r:91,m:"Anthony Munoz, Max Montoya, Dave Lapham"},
+    {t:"Bears",e:"1980s",n:"The Grabowskis",r:87,m:"Jimbo Covert, Jay Hilgenberg, Mark Bortz"},
+    {t:"Raiders",e:"1980s",n:"Commitment to Trenches",r:85,m:"Art Shell, Henry Lawrence, Don Mosebar"},
+    {t:"Cowboys",e:"1990s",n:"Great Wall of Dallas",r:96,m:"Larry Allen, Erik Williams, Mark Stepnoski, Nate Newton"},
+    {t:"Broncos",e:"1990s",n:"Zone Crushers",r:89,m:"Gary Zimmerman, Mark Schlereth, Tom Nalen"},
     {t:"Bills",e:"1990s",n:"K-Gun Front",r:86,m:"Kent Hull, Will Wolford, Jim Ritcher"},
+    {t:"Lions",e:"1990s",n:"Sanders' Shield",r:87,m:"Lomas Brown, Kevin Glover, Mike Compton"},
+    {t:"Seahawks",e:"2000s",n:"Walter's Wall",r:91,m:"Walter Jones, Steve Hutchinson, Robbie Tobeck"},
+    {t:"Ravens",e:"2000s",n:"Ogden's Anchor",r:90,m:"Jonathan Ogden, Edwin Mulitalo, Mike Flynn"},
     {t:"Chiefs",e:"2000s",n:"Arrowhead Anchors",r:92,m:"Willie Roaf, Will Shields, Brian Waters"},
     {t:"Colts",e:"2000s",n:"Manning's Shield",r:88,m:"Tarik Glenn, Jeff Saturday, Ryan Diem"},
-    {t:"Broncos",e:"2000s",n:"Mile High Zone",r:86,m:"Matt Lepsis, Tom Nalen, Ben Hamilton"},
-    {t:"Patriots",e:"2000s",n:"Brady's Blindside",r:86,m:"Matt Light, Logan Mankins, Dan Koppen"},
-    {t:"Cowboys",e:"2010s",n:"The Great Wall (II)",r:95,m:"Tyron Smith, Zack Martin, Travis Frederick"},
+    {t:"Patriots",e:"2000s",n:"Brady's Blindside",r:87,m:"Matt Light, Logan Mankins, Dan Koppen"},
+    {t:"Cowboys",e:"2010s",n:"The Great Wall (II)",r:96,m:"Tyron Smith, Zack Martin, Travis Frederick"},
     {t:"Eagles",e:"2010s",n:"Philly Front",r:92,m:"Jason Peters, Jason Kelce, Lane Johnson, Brandon Brooks"},
     {t:"Steelers",e:"2010s",n:"Steel City Front",r:88,m:"Maurkice Pouncey, David DeCastro, Alejandro Villanueva"},
-    {t:"Browns",e:"2010s",n:"Dawg Pound Wall",r:86,m:"Joe Thomas, Joel Bitonio, Alex Mack"},
-    {t:"Eagles",e:"2020s",n:"Brotherly Shove Line",r:95,m:"Jason Kelce, Lane Johnson, Jordan Mailata, Landon Dickerson"},
+    {t:"Browns",e:"2010s",n:"Dawg Pound Wall",r:87,m:"Joe Thomas, Joel Bitonio, Alex Mack"},
+    {t:"Eagles",e:"2020s",n:"Brotherly Shove Line",r:96,m:"Jason Kelce, Lane Johnson, Jordan Mailata, Landon Dickerson"},
     {t:"Lions",e:"2020s",n:"Motor City Maulers",r:92,m:"Penei Sewell, Frank Ragnow, Taylor Decker"},
     {t:"49ers",e:"2020s",n:"Trench Kings",r:90,m:"Trent Williams, Aaron Banks, Dominick Puni"},
-    {t:"Falcons",e:"2020s",n:"Dirty Birds Front",r:86,m:"Chris Lindstrom, Jake Matthews, Drew Dalman"}
+    {t:"Buccaneers",e:"2020s",n:"Pirate Wall",r:89,m:"Tristan Wirfs, Ali Marpet, Ryan Jensen"},
+    {t:"Falcons",e:"2020s",n:"Dirty Birds Front",r:86,m:"Chris Lindstrom, Jake Matthews, Drew Dalman"},
+    {t:"Patriots",e:"1980s",n:"Hannah's Hogs",r:89,m:"John Hannah, Leon Gray, Pete Brock"},
+    {t:"Oilers",e:"1980s",n:"Luv Ya Blue Line",r:87,m:"Mike Munchak, Bruce Matthews, Bruce Davis"},
+    {t:"Vikings",e:"1990s",n:"Purple Protectors",r:88,m:"Randall McDaniel, Gary Zimmerman, Todd Steussie"},
+    {t:"Titans",e:"1990s",n:"Matthews Wall",r:87,m:"Bruce Matthews, Brad Hopkins, Kevin Donnalley"},
+    {t:"Saints",e:"2000s",n:"Brees Bodyguards",r:88,m:"Jammal Brown, Jahri Evans, Carl Nicks"},
+    {t:"Steelers",e:"2000s",n:"Faneca Front",r:88,m:"Alan Faneca, Marvel Smith, Jeff Hartings"},
+    {t:"Saints",e:"2010s",n:"Dome Builders",r:87,m:"Max Unger, Terron Armstead, Jahri Evans"},
+    {t:"Titans",e:"2010s",n:"Lewan's Line",r:85,m:"Taylor Lewan, Ben Jones, Rodger Saffold"},
+    {t:"Chiefs",e:"2020s",n:"Mahomes Protectors",r:89,m:"Joe Thuney, Creed Humphrey, Trey Smith"},
+    {t:"Browns",e:"2020s",n:"Bitonio Wall",r:88,m:"Joel Bitonio, Wyatt Teller, Jack Conklin"},
+    {t:"Ravens",e:"2020s",n:"Stanley's Shield",r:86,m:"Ronnie Stanley, Kevin Zeitler, Tyler Linderbaum"}
   ],
   DEF:[
     {t:"Giants",e:"1950s",n:"The 4-3 Pioneers",r:90,m:"Sam Huff, Andy Robustelli, Emlen Tunnell"},
     {t:"Lions",e:"1950s",n:"Motor City D",r:88,m:"Joe Schmidt, Night Train Lane, Yale Lary"},
     {t:"Browns",e:"1950s",n:"Browns Front",r:84,m:"Len Ford, Bill Willis, Don Colo"},
+    {t:"Eagles",e:"1950s",n:"Suicide Seven",r:85,m:"Chuck Bednarik, Tom Brookshier, Maxie Baughan"},
+    {t:"Rams",e:"1960s",n:"Fearsome Foursome",r:93,m:"Deacon Jones, Merlin Olsen, Lamar Lundy, Rosey Grier"},
     {t:"Packers",e:"1960s",n:"Lombardi's D",r:92,m:"Willie Davis, Ray Nitschke, Herb Adderley, Willie Wood"},
+    {t:"Bears",e:"1960s",n:"Monsters of the Midway",r:91,m:"Dick Butkus, Doug Atkins, Bill George"},
     {t:"Vikings",e:"1960s",n:"Purple People Eaters",r:91,m:"Alan Page, Carl Eller, Jim Marshall, Gary Larsen"},
     {t:"Cowboys",e:"1960s",n:"Doomsday Defense",r:90,m:"Bob Lilly, Chuck Howley, Mel Renfro"},
     {t:"Chiefs",e:"1960s",n:"Stram's Stars",r:90,m:"Bobby Bell, Buck Buchanan, Willie Lanier"},
-    {t:"Bears",e:"1960s",n:"Monsters of the Midway",r:90,m:"Dick Butkus, Doug Atkins, Bill George"},
-    {t:"Steelers",e:"1970s",n:"Steel Curtain",r:98,m:"Joe Greene, Jack Lambert, Jack Ham, Mel Blount, L.C. Greenwood"},
+    {t:"Steelers",e:"1970s",n:"Steel Curtain",r:99,m:"Joe Greene, Jack Lambert, Jack Ham, Mel Blount, L.C. Greenwood"},
     {t:"Vikings",e:"1970s",n:"Purple People Eaters",r:92,m:"Alan Page, Carl Eller, Jim Marshall"},
     {t:"Cowboys",e:"1970s",n:"Doomsday II",r:92,m:"Randy White, Ed 'Too Tall' Jones, Harvey Martin"},
     {t:"Dolphins",e:"1970s",n:"No-Name Defense",r:90,m:"Nick Buoniconti, Manny Fernandez, Dick Anderson"},
     {t:"Broncos",e:"1970s",n:"Orange Crush",r:88,m:"Randy Gradishar, Tom Jackson, Lyle Alzado"},
     {t:"Raiders",e:"1970s",n:"The Soul Patrol",r:88,m:"Jack Tatum, Willie Brown, George Atkinson"},
     {t:"Bears",e:"1980s",n:"The 46 Defense",r:99,m:"Mike Singletary, Richard Dent, Dan Hampton, Steve McMichael, Wilber Marshall"},
-    {t:"Giants",e:"1980s",n:"Big Blue Wrecking Crew",r:95,m:"Lawrence Taylor, Harry Carson, Carl Banks"},
+    {t:"Giants",e:"1980s",n:"Big Blue Wrecking Crew",r:96,m:"Lawrence Taylor, Harry Carson, Carl Banks"},
+    {t:"Eagles",e:"1980s",n:"Buddy's Bunch",r:90,m:"Reggie White, Jerome Brown, Seth Joyner, Clyde Simmons"},
     {t:"Saints",e:"1980s",n:"The Dome Patrol",r:90,m:"Rickey Jackson, Sam Mills, Vaughan Johnson, Pat Swilling"},
+    {t:"49ers",e:"1980s",n:"Lott's Legion",r:89,m:"Ronnie Lott, Fred Dean, Charles Haley"},
     {t:"Jets",e:"1980s",n:"New York Sack Exchange",r:88,m:"Mark Gastineau, Joe Klecko, Marty Lyons"},
     {t:"Eagles",e:"1990s",n:"Gang Green",r:95,m:"Reggie White, Jerome Brown, Seth Joyner, Clyde Simmons"},
     {t:"Cowboys",e:"1990s",n:"Triplets D",r:92,m:"Charles Haley, Darren Woodson, Deion Sanders"},
+    {t:"Packers",e:"1990s",n:"Reggie's Wall",r:91,m:"Reggie White, LeRoy Butler, Gilbert Brown"},
     {t:"Steelers",e:"1990s",n:"Blitzburgh",r:90,m:"Greg Lloyd, Kevin Greene, Rod Woodson, Levon Kirkland"},
     {t:"Bills",e:"1990s",n:"Bermuda Triangle",r:90,m:"Bruce Smith, Cornelius Bennett, Darryl Talley"},
-    {t:"Ravens",e:"2000s",n:"Purple Reign",r:98,m:"Ray Lewis, Ed Reed, Terrell Suggs, Chris McAlister"},
+    {t:"Ravens",e:"2000s",n:"Purple Reign",r:99,m:"Ray Lewis, Ed Reed, Terrell Suggs, Chris McAlister"},
     {t:"Buccaneers",e:"2000s",n:"Tampa 2",r:96,m:"Warren Sapp, Derrick Brooks, John Lynch, Simeon Rice"},
     {t:"Steelers",e:"2000s",n:"Blitzburgh II",r:95,m:"Troy Polamalu, James Harrison, Casey Hampton"},
+    {t:"Giants",e:"2000s",n:"Big Blue Rush",r:91,m:"Michael Strahan, Osi Umenyiora, Justin Tuck"},
     {t:"Bears",e:"2000s",n:"Cover-2 Monsters",r:90,m:"Brian Urlacher, Lance Briggs, Mike Brown"},
     {t:"Eagles",e:"2000s",n:"Jim Johnson Blitz",r:90,m:"Brian Dawkins, Jeremiah Trotter, Trent Cole"},
     {t:"Seahawks",e:"2010s",n:"Legion of Boom",r:98,m:"Richard Sherman, Earl Thomas, Kam Chancellor, Bobby Wagner"},
-    {t:"Broncos",e:"2010s",n:"No Fly Zone",r:94,m:"Von Miller, Aqib Talib, Chris Harris Jr., DeMarcus Ware"},
+    {t:"Broncos",e:"2010s",n:"No Fly Zone",r:95,m:"Von Miller, Aqib Talib, Chris Harris Jr., DeMarcus Ware"},
     {t:"Panthers",e:"2010s",n:"Keep Pounding D",r:92,m:"Luke Kuechly, Thomas Davis, Josh Norman"},
     {t:"Rams",e:"2010s",n:"Wade's Wall",r:91,m:"Aaron Donald, Ndamukong Suh, Marcus Peters"},
+    {t:"Jaguars",e:"2010s",n:"Sacksonville",r:91,m:"Jalen Ramsey, Calais Campbell, Telvin Smith, Myles Jack"},
     {t:"Texans",e:"2010s",n:"Bull Rush",r:88,m:"J.J. Watt, Jadeveon Clowney, Whitney Mercilus"},
-    {t:"Rams",e:"2020s",n:"The Donald Era",r:94,m:"Aaron Donald, Jalen Ramsey, Bobby Wagner"},
+    {t:"Rams",e:"2020s",n:"The Donald Era",r:95,m:"Aaron Donald, Jalen Ramsey, Bobby Wagner"},
     {t:"49ers",e:"2020s",n:"The Faithful Front",r:94,m:"Nick Bosa, Fred Warner, Arik Armstead"},
     {t:"Cowboys",e:"2020s",n:"Micah's Menace",r:92,m:"Micah Parsons, DeMarcus Lawrence, Trevon Diggs"},
     {t:"Steelers",e:"2020s",n:"Steel Curtain (III)",r:92,m:"T.J. Watt, Minkah Fitzpatrick, Cam Heyward"},
     {t:"Eagles",e:"2020s",n:"Sack Squad",r:92,m:"Haason Reddick, Fletcher Cox, Brandon Graham"},
-    {t:"Ravens",e:"2020s",n:"Flock Defense",r:90,m:"Roquan Smith, Kyle Hamilton, Marlon Humphrey"}
+    {t:"Ravens",e:"2020s",n:"Flock Defense",r:91,m:"Roquan Smith, Kyle Hamilton, Marlon Humphrey"},
+    {t:"Bills",e:"2020s",n:"Bills Mafia D",r:89,m:"Von Miller, Matt Milano, Tre'Davious White"},
+    {t:"Browns",e:"2020s",n:"Garrett's Grind",r:90,m:"Myles Garrett, Denzel Ward, Za'Darius Smith"},
+    {t:"Falcons",e:"1970s",n:"Grits Blitz",r:86,m:"Claude Humphrey, Greg Brezina, Rolland Lawrence"},
+    {t:"Rams",e:"1970s",n:"Youngblood's Front",r:88,m:"Jack Youngblood, Jack Reynolds, Fred Dryer"},
+    {t:"Raiders",e:"1980s",n:"Bump and Run",r:89,m:"Howie Long, Lester Hayes, Mike Haynes, Ted Hendricks"},
+    {t:"49ers",e:"1990s",n:"Deion's Defense",r:89,m:"Deion Sanders, Merton Hanks, Dana Stubblefield"},
+    {t:"Chiefs",e:"1990s",n:"Thomas's Terror",r:89,m:"Derrick Thomas, Neil Smith, Dale Carter"},
+    {t:"Vikings",e:"1990s",n:"Randle's Rush",r:87,m:"John Randle, Chris Doleman, Henry Thomas"},
+    {t:"Patriots",e:"2000s",n:"Belichick's Best",r:90,m:"Richard Seymour, Ty Law, Tedy Bruschi, Mike Vrabel"},
+    {t:"Colts",e:"2000s",n:"Speed Rush",r:88,m:"Dwight Freeney, Robert Mathis, Bob Sanders"},
+    {t:"Panthers",e:"2000s",n:"Cats Attack",r:87,m:"Julius Peppers, Dan Morgan, Mike Minter"},
+    {t:"49ers",e:"2010s",n:"Smith & Willis",r:91,m:"Patrick Willis, NaVorro Bowman, Justin Smith, Aldon Smith"},
+    {t:"Eagles",e:"2010s",n:"Philly Special D",r:90,m:"Fletcher Cox, Brandon Graham, Malcolm Jenkins"},
+    {t:"Vikings",e:"2010s",n:"Zimmer's Crew",r:89,m:"Harrison Smith, Everson Griffen, Danielle Hunter, Xavier Rhodes"},
+    {t:"Cardinals",e:"2010s",n:"Honey Badger D",r:88,m:"Tyrann Mathieu, Patrick Peterson, Calais Campbell"},
+    {t:"Jets",e:"2020s",n:"Sauce Squad",r:88,m:"Quinnen Williams, Sauce Gardner, C.J. Mosley"},
+    {t:"Saints",e:"2020s",n:"Dome D",r:87,m:"Cameron Jordan, Marshon Lattimore, Demario Davis"},
+    {t:"Lions",e:"2020s",n:"Hutch's Hunt",r:87,m:"Aidan Hutchinson, Brian Branch, Alim McNeill"},
+    {t:"Chargers",e:"2020s",n:"Bolt Brigade",r:87,m:"Joey Bosa, Khalil Mack, Derwin James"}
   ]
 };
+
+/* Keep only eras that are in play (drops 1960s entries automatically) */
+for(const k in DATA){DATA[k]=DATA[k].filter(p=>ERAS.includes(p.e));}
 
 const SLOTS=[
   {pos:"QB",label:"Quarterback",key:"QB"},
@@ -470,10 +567,10 @@ const SLOTS=[
   {pos:"DEF",label:"Defense",key:"DEF"}
 ];
 const WEIGHT={QB:1.4,RB:1.0,WR:0.9,TE:0.7,OL:1.5,DEF:1.8};
-const TEAM_RESPINS=2,ERA_RESPINS=2;
+const N_CARDS=4,RESPINS=4;
 
-let showRatings=true,roster=[],cur=0,teamLeft=TEAM_RESPINS,eraLeft=ERA_RESPINS;
-let cardA={t:"",e:""},cardB={t:"",e:""},selected="A",spinning=false;
+let showRatings=true,roster=[],cur=0,respinsLeft=RESPINS;
+let cards=[],selected=0,spinning=false;
 
 const $=id=>document.getElementById(id);
 function poolFor(key){const taken=new Set(roster.map(p=>p.n));return DATA[key].filter(e=>!taken.has(e.n));}
@@ -484,9 +581,25 @@ function setMode(c){showRatings=c;$("modeClassic").classList.toggle("sel",c);$("
 function toggleTheme(){const l=document.body.classList.toggle("light");$("themeToggle").textContent=l?"Dark Mode":"Light Mode";}
 
 function startGame(){
-  roster=[];cur=0;teamLeft=TEAM_RESPINS;eraLeft=ERA_RESPINS;
+  roster=[];cur=0;respinsLeft=RESPINS;
   $("start").classList.remove("on");$("results").classList.remove("on");$("game").classList.add("on");
-  buildTrack();nextSlot();
+  buildTrack();buildCards();nextSlot();
+}
+
+function buildCards(){
+  const o=$("opts");o.innerHTML="";
+  for(let i=0;i<N_CARDS;i++){
+    const d=document.createElement("div");
+    d.className="ocard"+(i===0?" sel":"");d.id="card"+i;
+    d.onclick=()=>selectCard(i);
+    d.innerHTML=`<div class="ocard-reels">
+        <div class="mreel"><span class="mlabel">Franchise</span><span class="mval locked" id="t${i}">?</span></div>
+        <div class="mreel"><span class="mlabel">Era</span><span class="mval locked" id="e${i}">?</span></div>
+      </div>
+      <div class="oplayer" id="p${i}"></div>
+      <button class="rsp" id="rsp${i}" onclick="respin(event,${i})"><span class="ic">&#8635;</span> Respin</button>`;
+    o.appendChild(d);
+  }
 }
 
 function buildTrack(){
@@ -501,21 +614,29 @@ function refreshTrack(){
 }
 
 function updateControls(){
-  $("teamCount").textContent=teamLeft;
-  $("eraCount").textContent=eraLeft;
-  const tDis=teamLeft<=0||spinning,eDis=eraLeft<=0||spinning;
-  ["rspTA","rspTB"].forEach(id=>{const b=$(id);if(b)b.disabled=tDis;});
-  ["rspEA","rspEB"].forEach(id=>{const b=$(id);if(b)b.disabled=eDis;});
-  $("btnDraft").disabled=spinning||!selected;
+  $("respinCount").textContent=respinsLeft;
+  const dis=respinsLeft<=0||spinning;
+  for(let i=0;i<N_CARDS;i++){const b=$("rsp"+i);if(b)b.disabled=dis;}
+  $("btnDraft").disabled=spinning||selected<0;
 }
 function showNote(t){$("note").textContent=t;setTimeout(()=>{if($("note").textContent===t)$("note").textContent="";},2400);}
 
-function freshTwo(key){
+/* Pick a franchise+era whose best legend isn't already used by another card */
+function pickDistinct(key,used){
   const pool=poolFor(key);
-  const a=rand(pool);const A={t:a.t,e:a.e};const an=bestFor(key,A.t,A.e).n;
-  let b,B,tries=0;
-  do{b=rand(pool);B={t:b.t,e:b.e};tries++;}while(tries<80 && bestFor(key,B.t,B.e).n===an);
-  return [A,B];
+  for(let tries=0;tries<200;tries++){
+    const p=rand(pool);const b=bestFor(key,p.t,p.e);
+    if(b&&!used.has(b.n))return {t:p.t,e:p.e};
+  }
+  const p=rand(pool);return {t:p.t,e:p.e};
+}
+function freshCards(key){
+  const out=[],used=new Set();
+  for(let i=0;i<N_CARDS;i++){
+    const c=pickDistinct(key,used);out.push(c);
+    const b=bestFor(key,c.t,c.e);if(b)used.add(b.n);
+  }
+  return out;
 }
 
 function nextSlot(){
@@ -525,78 +646,66 @@ function nextSlot(){
   $("needPos").textContent=s.label;
   $("note").textContent="";
   refreshTrack();
-  const two=freshTwo(s.key);cardA=two[0];cardB=two[1];
-  selected="A";
-  $("cardA").classList.add("sel");$("cardB").classList.remove("sel");
+  cards=freshCards(s.key);
+  selectCard(0);
   animateRound();
 }
 
-function animateRound(){
+/* Spin a set of reels [{id,pool,fin}] for dur ms, then lock and run done() */
+function spinReels(specs,dur,done){
   spinning=true;updateControls();
-  const key=SLOTS[cur].key,teams=allTeams(key);
-  const reels=[["tA",teams,cardA.t],["eA",ERAS,cardA.e],["tB",teams,cardB.t],["eB",ERAS,cardB.e]];
-  reels.forEach(r=>{const el=$(r[0]);el.classList.remove("locked");el.classList.add("spin");});
-  const ivs=reels.map(r=>setInterval(()=>{$(r[0]).textContent=rand(r[1]);},70));
-  $("pA").innerHTML="";$("pB").innerHTML="";
+  specs.forEach(s=>{const el=$(s.id);el.classList.remove("locked");el.classList.add("spin");});
+  const ivs=specs.map(s=>setInterval(()=>{$(s.id).textContent=rand(s.pool);},70));
   setTimeout(()=>{
     ivs.forEach(clearInterval);
-    reels.forEach(r=>{const el=$(r[0]);el.classList.remove("spin");el.classList.add("locked");el.textContent=r[2];});
-    renderCard("A");renderCard("B");spinning=false;updateControls();
-  },950);
+    specs.forEach(s=>{const el=$(s.id);el.classList.remove("spin");el.classList.add("locked");el.textContent=s.fin;});
+    spinning=false;if(done)done();updateControls();
+  },dur);
 }
 
-function spinReel(elId,kind,finalText,cb){
-  spinning=true;updateControls();
-  const el=$(elId),pool=kind==="team"?allTeams(SLOTS[cur].key):ERAS;
-  el.classList.remove("locked");el.classList.add("spin");
-  const iv=setInterval(()=>{el.textContent=rand(pool);},70);
-  setTimeout(()=>{clearInterval(iv);el.classList.remove("spin");el.classList.add("locked");el.textContent=finalText;spinning=false;if(cb)cb();updateControls();},720);
+function animateRound(){
+  const key=SLOTS[cur].key,teams=allTeams(key),specs=[];
+  cards.forEach((c,i)=>{
+    $("p"+i).innerHTML="";
+    specs.push({id:"t"+i,pool:teams,fin:c.t});
+    specs.push({id:"e"+i,pool:ERAS,fin:c.e});
+  });
+  spinReels(specs,950,()=>cards.forEach((c,i)=>renderCard(i)));
 }
 
-function respin(ev,card,dim){
+/* Respin rerolls a whole card: new franchise + era + legend */
+function respin(ev,i){
   ev.stopPropagation();
-  if(spinning)return;
-  if(dim==="team"&&teamLeft<=0)return;
-  if(dim==="era"&&eraLeft<=0)return;
+  if(spinning||respinsLeft<=0)return;
   const key=SLOTS[cur].key;
-  const me=card==="A"?cardA:cardB;
-  const other=card==="A"?cardB:cardA;
-  const ob=bestFor(key,other.t,other.e);const oName=ob?ob.n:"";
-  if(dim==="team"){
-    const cands=[...new Set(poolFor(key).filter(x=>x.e===me.e&&x.t!==me.t).map(x=>x.t))]
-      .filter(t=>{const b=bestFor(key,t,me.e);return b&&b.n!==oName;});
-    if(!cands.length){showNote("No other franchise in the "+me.e+" for this slot");return;}
-    me.t=rand(cands);teamLeft--;
-  }else{
-    const cands=[...new Set(poolFor(key).filter(x=>x.t===me.t&&x.e!==me.e).map(x=>x.e))]
-      .filter(e=>{const b=bestFor(key,me.t,e);return b&&b.n!==oName;});
-    if(!cands.length){showNote("The "+me.t+" only appear in one era for this slot");return;}
-    me.e=rand(cands);eraLeft--;
-  }
-  const elId=(dim==="team"?"t":"e")+card;
-  const fin=dim==="team"?me.t:me.e;
-  spinReel(elId,dim,fin,()=>renderCard(card));
+  const used=new Set();
+  cards.forEach((c,j)=>{if(j!==i){const b=bestFor(key,c.t,c.e);if(b)used.add(b.n);}});
+  const cur_b=bestFor(key,cards[i].t,cards[i].e);if(cur_b)used.add(cur_b.n);
+  cards[i]=pickDistinct(key,used);
+  respinsLeft--;
+  const teams=allTeams(key);
+  $("p"+i).innerHTML="";
+  spinReels([{id:"t"+i,pool:teams,fin:cards[i].t},{id:"e"+i,pool:ERAS,fin:cards[i].e}],720,()=>renderCard(i));
 }
 
-function renderCard(card){
-  const key=SLOTS[cur].key,c=card==="A"?cardA:cardB,b=bestFor(key,c.t,c.e),el=$("p"+card);
+function renderCard(i){
+  const key=SLOTS[cur].key,c=cards[i],b=bestFor(key,c.t,c.e),el=$("p"+i);
   if(!b){el.innerHTML="";return;}
   const rt=showRatings?`<div class="rt">${b.r}</div>`:`<div class="rt" style="color:var(--mute);font-size:16px">?</div>`;
   const mem=b.m?`<div class="mem">${b.m}</div>`:"";
   el.innerHTML=`${rt}<div><div class="nm">${b.n}</div>${mem}</div>`;
 }
 
-function selectCard(c){
+function selectCard(i){
   if(spinning)return;
-  selected=c;
-  $("cardA").classList.toggle("sel",c==="A");
-  $("cardB").classList.toggle("sel",c==="B");
+  selected=i;
+  for(let j=0;j<N_CARDS;j++){const el=$("card"+j);if(el)el.classList.toggle("sel",j===i);}
   updateControls();
 }
 
 function draft(){
-  if(spinning||!selected)return;
-  const key=SLOTS[cur].key,c=selected==="A"?cardA:cardB,b=bestFor(key,c.t,c.e);
+  if(spinning||selected<0)return;
+  const key=SLOTS[cur].key,c=cards[selected],b=bestFor(key,c.t,c.e);
   if(!b)return;
   roster.push({...b,slotPos:SLOTS[cur].pos,slotKey:SLOTS[cur].key});
   cur++;refreshTrack();nextSlot();
@@ -607,7 +716,7 @@ function showResults(){
   let wsum=0,total=0;
   roster.forEach(p=>{const w=WEIGHT[p.slotKey];wsum+=p.r*w;total+=w;});
   const score=wsum/total;
-  let wins=Math.round(17/(1+Math.exp(-(score-85)/3.8)));
+  let wins=Math.round(17/(1+Math.exp(-(score-84)/3.8)));
   if(wins>17)wins=17;
   const losses=17-wins;
   let outcome,ring,cls;
