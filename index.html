@@ -120,7 +120,8 @@
   .oplayer .nm{font-family:'Oswald';font-weight:700;font-size:18px;line-height:1.1}
   .oplayer .mem{font-size:11px;color:var(--white);opacity:.72;margin-top:3px;line-height:1.3}
   .orvs{text-align:center;font-family:'Anton';color:var(--mute);font-size:13px;letter-spacing:.14em;padding:2px 0}
-  .ocard>.rsp{width:100%;margin-top:12px}
+  .respinrow{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:8px;flex-wrap:wrap}
+  .rspall{min-width:150px}
 
   .res-top{text-align:center;padding:30px 22px 22px}
   .res-top .band{font-family:'Oswald';text-transform:uppercase;letter-spacing:.2em;font-size:13px;color:var(--mute)}
@@ -203,7 +204,7 @@
           <li>Build 8 slots: QB, RB, three WRs, TE, a whole offensive line, and a whole defense.</li>
           <li>Every round you get four cards. Each is a franchise, an era, and that team's best legend from it. Pick one.</li>
           <li>The line and defense slots draft famous units like the Hogs, the Steel Curtain, or the Legion of Boom.</li>
-          <li>Don't love a card? Hit Respin to reroll it into a brand new franchise, era, and legend. You get four respins per game.</li>
+          <li>Don't love your options? Hit Respin All to reroll all four cards into brand new franchises, eras, and legends. You get four respins per game.</li>
           <li>Your roster gets one blended rating run through a win curve. Only a near perfect build goes 17 and 0.</li>
         </ul>
       </div>
@@ -232,7 +233,10 @@
           <span class="r" id="roundLabel">Round 1 of 8</span>
           <span class="need">On the clock: <em id="needPos">QB</em></span>
         </div>
-        <div class="respinbar">Respins left <b id="respinCount">4</b></div>
+        <div class="respinrow">
+          <button class="rsp rspall" id="rspAll" onclick="respinAll()"><span class="ic">&#8635;</span> Respin all 4</button>
+          <span class="respinbar">Respins left <b id="respinCount">4</b></span>
+        </div>
         <div class="note" id="note"></div>
 
         <div class="opts" id="opts"></div>
@@ -314,7 +318,12 @@ const DATA={
     {t:"Texans",e:"2010s",n:"Deshaun Watson",r:87},{t:"Raiders",e:"2010s",n:"Derek Carr",r:85},
     {t:"Dolphins",e:"2020s",n:"Tua Tagovailoa",r:87},{t:"49ers",e:"2020s",n:"Brock Purdy",r:86},
     {t:"Commanders",e:"2020s",n:"Jayden Daniels",r:86},{t:"Cowboys",e:"2020s",n:"Dak Prescott",r:88},
-    {t:"Jaguars",e:"2020s",n:"Trevor Lawrence",r:85}
+    {t:"Jaguars",e:"2020s",n:"Trevor Lawrence",r:85},
+    {t:"Raiders",e:"1980s",n:"Jim Plunkett",r:82},{t:"Rams",e:"1980s",n:"Jim Everett",r:82},
+    {t:"Vikings",e:"2000s",n:"Daunte Culpepper",r:85},{t:"Falcons",e:"2000s",n:"Matt Ryan",r:86},
+    {t:"Cowboys",e:"2010s",n:"Tony Romo",r:87},{t:"Vikings",e:"2010s",n:"Kirk Cousins",r:84},
+    {t:"Seahawks",e:"2020s",n:"Geno Smith",r:84},{t:"Vikings",e:"2020s",n:"Kirk Cousins",r:85},
+    {t:"Steelers",e:"2020s",n:"Russell Wilson",r:84},{t:"Falcons",e:"2020s",n:"Kirk Cousins",r:83}
   ],
   RB:[
     {t:"Browns",e:"1950s",n:"Jim Brown",r:96},{t:"49ers",e:"1950s",n:"Joe Perry",r:87},
@@ -359,7 +368,12 @@ const DATA={
     {t:"Seahawks",e:"2010s",n:"Marshawn Lynch",r:91},{t:"Panthers",e:"2010s",n:"Christian McCaffrey",r:91},
     {t:"Giants",e:"2010s",n:"Saquon Barkley",r:90},{t:"Titans",e:"2010s",n:"Derrick Henry",r:90},
     {t:"Packers",e:"2020s",n:"Aaron Jones",r:85},{t:"Chargers",e:"2020s",n:"Austin Ekeler",r:85},
-    {t:"Bengals",e:"2020s",n:"Joe Mixon",r:84}
+    {t:"Bengals",e:"2020s",n:"Joe Mixon",r:84},
+    {t:"Bengals",e:"2000s",n:"Corey Dillon",r:85},{t:"Titans",e:"2000s",n:"Eddie George",r:85},
+    {t:"Rams",e:"2000s",n:"Steven Jackson",r:85},{t:"Saints",e:"2000s",n:"Reggie Bush",r:83},
+    {t:"Bears",e:"2010s",n:"Matt Forte",r:85},{t:"Jaguars",e:"2010s",n:"Maurice Jones-Drew",r:85},
+    {t:"Cardinals",e:"1990s",n:"Garrison Hearst",r:81},{t:"Redskins",e:"2000s",n:"Clinton Portis",r:84},
+    {t:"Vikings",e:"2020s",n:"Dalvin Cook",r:86},{t:"Lions",e:"2020s",n:"David Montgomery",r:83}
   ],
   WR:[
     {t:"Rams",e:"1950s",n:"Elroy Hirsch",r:86},{t:"Colts",e:"1950s",n:"Raymond Berry",r:85},
@@ -408,7 +422,12 @@ const DATA={
     {t:"Broncos",e:"2010s",n:"Demaryius Thomas",r:88},
     {t:"49ers",e:"2020s",n:"Deebo Samuel",r:89},{t:"Dolphins",e:"2020s",n:"Jaylen Waddle",r:88},
     {t:"Bengals",e:"2020s",n:"Tee Higgins",r:88},{t:"Jets",e:"2020s",n:"Garrett Wilson",r:87},
-    {t:"Texans",e:"2020s",n:"Nico Collins",r:87}
+    {t:"Texans",e:"2020s",n:"Nico Collins",r:87},
+    {t:"Rams",e:"2000s",n:"Torry Holt",r:89},{t:"Rams",e:"1990s",n:"Isaac Bruce",r:88},
+    {t:"Patriots",e:"2000s",n:"Wes Welker",r:87},{t:"Patriots",e:"2010s",n:"Julian Edelman",r:85},
+    {t:"Packers",e:"2010s",n:"Davante Adams",r:90},{t:"Chargers",e:"2010s",n:"Keenan Allen",r:88},
+    {t:"Colts",e:"2010s",n:"T.Y. Hilton",r:86},{t:"Saints",e:"2000s",n:"Joe Horn",r:84},
+    {t:"Eagles",e:"2020s",n:"DeVonta Smith",r:86},{t:"Chargers",e:"2020s",n:"Keenan Allen",r:87}
   ],
   TE:[
     {t:"Eagles",e:"1950s",n:"Pete Pihos",r:82},{t:"Giants",e:"1950s",n:"Bob Schnelker",r:76},
@@ -436,7 +455,10 @@ const DATA={
     {t:"Dolphins",e:"1990s",n:"Keith Jackson",r:85},{t:"Packers",e:"1990s",n:"Mark Chmura",r:82},
     {t:"Steelers",e:"2000s",n:"Heath Miller",r:84},{t:"49ers",e:"2000s",n:"Vernon Davis",r:85},
     {t:"Chargers",e:"2010s",n:"Antonio Gates",r:87},{t:"Raiders",e:"2010s",n:"Darren Waller",r:86},
-    {t:"Vikings",e:"2020s",n:"T.J. Hockenson",r:86},{t:"Eagles",e:"2020s",n:"Dallas Goedert",r:85}
+    {t:"Vikings",e:"2020s",n:"T.J. Hockenson",r:86},{t:"Eagles",e:"2020s",n:"Dallas Goedert",r:85},
+    {t:"Cardinals",e:"1970s",n:"Jackie Smith",r:84},{t:"Falcons",e:"2010s",n:"Tony Gonzalez",r:90},
+    {t:"Patriots",e:"2010s",n:"Aaron Hernandez",r:84},{t:"Cowboys",e:"2010s",n:"Jason Witten",r:88},
+    {t:"Patriots",e:"2020s",n:"Hunter Henry",r:84},{t:"Bengals",e:"2020s",n:"Mike Gesicki",r:80}
   ],
   OL:[
     {t:"Browns",e:"1950s",n:"The Cleveland Wall",r:90,m:"Gatski, McCormack, Groza, Gibron, Hickerson"},
@@ -483,7 +505,11 @@ const DATA={
     {t:"Titans",e:"2010s",n:"Lewan's Line",r:85,m:"Taylor Lewan, Ben Jones, Rodger Saffold"},
     {t:"Chiefs",e:"2020s",n:"Mahomes Protectors",r:89,m:"Joe Thuney, Creed Humphrey, Trey Smith"},
     {t:"Browns",e:"2020s",n:"Bitonio Wall",r:88,m:"Joel Bitonio, Wyatt Teller, Jack Conklin"},
-    {t:"Ravens",e:"2020s",n:"Stanley's Shield",r:86,m:"Ronnie Stanley, Kevin Zeitler, Tyler Linderbaum"}
+    {t:"Ravens",e:"2020s",n:"Stanley's Shield",r:86,m:"Ronnie Stanley, Kevin Zeitler, Tyler Linderbaum"},
+    {t:"Rams",e:"2010s",n:"Whitworth Wall",r:87,m:"Andrew Whitworth, Rob Havenstein, Austin Blythe"},
+    {t:"Patriots",e:"2010s",n:"Mankins Line",r:86,m:"Logan Mankins, Nate Solder, Sebastian Vollmer"},
+    {t:"Colts",e:"2020s",n:"Nelson's Nasty Boys",r:88,m:"Quenton Nelson, Ryan Kelly, Braden Smith"},
+    {t:"Commanders",e:"2010s",n:"Hog Mollies",r:84,m:"Trent Williams, Brandon Scherff, Morgan Moses"}
   ],
   DEF:[
     {t:"Giants",e:"1950s",n:"The 4-3 Pioneers",r:90,m:"Sam Huff, Andy Robustelli, Emlen Tunnell"},
@@ -549,12 +575,22 @@ const DATA={
     {t:"Jets",e:"2020s",n:"Sauce Squad",r:88,m:"Quinnen Williams, Sauce Gardner, C.J. Mosley"},
     {t:"Saints",e:"2020s",n:"Dome D",r:87,m:"Cameron Jordan, Marshon Lattimore, Demario Davis"},
     {t:"Lions",e:"2020s",n:"Hutch's Hunt",r:87,m:"Aidan Hutchinson, Brian Branch, Alim McNeill"},
-    {t:"Chargers",e:"2020s",n:"Bolt Brigade",r:87,m:"Joey Bosa, Khalil Mack, Derwin James"}
+    {t:"Chargers",e:"2020s",n:"Bolt Brigade",r:87,m:"Joey Bosa, Khalil Mack, Derwin James"},
+    {t:"Steelers",e:"2010s",n:"LeBeau's Blitz",r:90,m:"Troy Polamalu, James Harrison, Lawrence Timmons"},
+    {t:"Packers",e:"2010s",n:"Capers Crew",r:87,m:"Clay Matthews, Charles Woodson, B.J. Raji"},
+    {t:"Cowboys",e:"2000s",n:"Ware's Wall",r:88,m:"DeMarcus Ware, Terence Newman, Greg Ellis"},
+    {t:"Bengals",e:"2010s",n:"Jungle D",r:86,m:"Geno Atkins, Carlos Dunlap, Vontaze Burfict"},
+    {t:"Dolphins",e:"2020s",n:"Phins Phury",r:86,m:"Jaelan Phillips, Jevon Holland, Christian Wilkins"},
+    {t:"Bills",e:"2010s",n:"Bills Front",r:86,m:"Marcell Dareus, Kyle Williams, Jerry Hughes"}
   ]
 };
 
-/* Keep only eras that are in play (drops 1960s entries automatically) */
-for(const k in DATA){DATA[k]=DATA[k].filter(p=>ERAS.includes(p.e));}
+/* Keep only eras in play (drops 1960s), then lift every rating toward the top.
+   True peak GOATs hit 100; everyone else gets pulled up 40% of the way to 100. */
+for(const k in DATA){
+  DATA[k]=DATA[k].filter(p=>ERAS.includes(p.e))
+    .map(p=>({...p,r:p.r>=99?100:Math.min(100,Math.round(p.r+(100-p.r)*0.4))}));
+}
 
 const SLOTS=[
   {pos:"QB",label:"Quarterback",key:"QB"},
@@ -596,8 +632,7 @@ function buildCards(){
         <div class="mreel"><span class="mlabel">Franchise</span><span class="mval locked" id="t${i}">?</span></div>
         <div class="mreel"><span class="mlabel">Era</span><span class="mval locked" id="e${i}">?</span></div>
       </div>
-      <div class="oplayer" id="p${i}"></div>
-      <button class="rsp" id="rsp${i}" onclick="respin(event,${i})"><span class="ic">&#8635;</span> Respin</button>`;
+      <div class="oplayer" id="p${i}"></div>`;
     o.appendChild(d);
   }
 }
@@ -615,8 +650,7 @@ function refreshTrack(){
 
 function updateControls(){
   $("respinCount").textContent=respinsLeft;
-  const dis=respinsLeft<=0||spinning;
-  for(let i=0;i<N_CARDS;i++){const b=$("rsp"+i);if(b)b.disabled=dis;}
+  const b=$("rspAll");if(b)b.disabled=respinsLeft<=0||spinning;
   $("btnDraft").disabled=spinning||selected<0;
 }
 function showNote(t){$("note").textContent=t;setTimeout(()=>{if($("note").textContent===t)$("note").textContent="";},2400);}
@@ -673,19 +707,19 @@ function animateRound(){
   spinReels(specs,950,()=>cards.forEach((c,i)=>renderCard(i)));
 }
 
-/* Respin rerolls a whole card: new franchise + era + legend */
-function respin(ev,i){
-  ev.stopPropagation();
+/* Respin rerolls ALL four cards at once (new franchise + era + legend each) */
+function respinAll(){
   if(spinning||respinsLeft<=0)return;
   const key=SLOTS[cur].key;
-  const used=new Set();
-  cards.forEach((c,j)=>{if(j!==i){const b=bestFor(key,c.t,c.e);if(b)used.add(b.n);}});
-  const cur_b=bestFor(key,cards[i].t,cards[i].e);if(cur_b)used.add(cur_b.n);
-  cards[i]=pickDistinct(key,used);
+  cards=freshCards(key);
   respinsLeft--;
-  const teams=allTeams(key);
-  $("p"+i).innerHTML="";
-  spinReels([{id:"t"+i,pool:teams,fin:cards[i].t},{id:"e"+i,pool:ERAS,fin:cards[i].e}],720,()=>renderCard(i));
+  const teams=allTeams(key),specs=[];
+  cards.forEach((c,i)=>{
+    $("p"+i).innerHTML="";
+    specs.push({id:"t"+i,pool:teams,fin:c.t});
+    specs.push({id:"e"+i,pool:ERAS,fin:c.e});
+  });
+  spinReels(specs,820,()=>cards.forEach((c,i)=>renderCard(i)));
 }
 
 function renderCard(i){
@@ -716,7 +750,7 @@ function showResults(){
   let wsum=0,total=0;
   roster.forEach(p=>{const w=WEIGHT[p.slotKey];wsum+=p.r*w;total+=w;});
   const score=wsum/total;
-  let wins=Math.round(17/(1+Math.exp(-(score-84)/3.8)));
+  let wins=Math.round(17/(1+Math.exp(-(score-88)/3.0)));
   if(wins>17)wins=17;
   const losses=17-wins;
   let outcome,ring,cls;
@@ -729,7 +763,7 @@ function showResults(){
   const rec=$("rec");rec.textContent=`${wins}-${losses}`;rec.className="rec "+cls;
   $("outcome").textContent=outcome;$("ringline").textContent=ring;
   $("ratingNum").textContent=score.toFixed(1);
-  setTimeout(()=>{$("ratingFill").style.width=Math.max(0,Math.min(100,((score-60)/39)*100))+"%";},120);
+  setTimeout(()=>{$("ratingFill").style.width=Math.max(0,Math.min(100,((score-70)/30)*100))+"%";},120);
   const bd=$("breakdown");bd.innerHTML="";
   roster.forEach(p=>{
     const row=document.createElement("div");row.className="brow";
