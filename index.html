@@ -736,8 +736,8 @@ const SOUNDS={
   whistle:()=>{sweep(1650,2150,0.02,0.1,0.05,"sine",0.07);}
 };
 const SOUND_LIST=[["stinger","Stinger"],["boom","Stadium Boom"],["horn","Air Horn"],["chime","Chime"],["arcade","Arcade"],["whistle","Whistle"]];
-let draftSound=localStorage.getItem("sbbDraftSound")||"stinger";
-if(!SOUNDS[draftSound])draftSound="stinger";
+let draftSound=localStorage.getItem("sbbDraftSound")||"boom";
+if(!SOUNDS[draftSound])draftSound="boom";
 function sfxDraft(){if(muted)return;const f=SOUNDS[draftSound];if(f)f();}
 function pickSound(key){draftSound=key;localStorage.setItem("sbbDraftSound",key);const f=SOUNDS[key];if(f)f();renderSoundPicker();}
 function renderSoundPicker(){const host=$("spbtns");if(!host)return;host.innerHTML=SOUND_LIST.map(s=>`<button class="spbtn${s[0]===draftSound?" sel":""}" onclick="pickSound('${s[0]}')">${s[1]}</button>`).join("");}
